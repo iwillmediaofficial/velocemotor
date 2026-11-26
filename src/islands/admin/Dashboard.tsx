@@ -2,14 +2,16 @@ import { useEffect, useState } from 'preact/hooks';
 import { must, sb, todayIST } from './lib';
 import { Loading } from './ui';
 import { BookingTable, type BookingListRow } from './Bookings';
+import NewBooking from './NewBooking';
 
-const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
+const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,source,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
 
 export default function Dashboard({ onChange }: { onChange: () => void }) {
   const [data, setData] = useState<{
     today: number; pending: number; enquiries: number; products: number; samples: number;
     requests: BookingListRow[]; upcoming: BookingListRow[];
   } | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const load = async () => {
     const t = todayIST();
@@ -36,6 +38,8 @@ export default function Dashboard({ onChange }: { onChange: () => void }) {
 
   return (
     <>
+      <div class="atools" style="justify-content:flex-end"><button class="btn btn-primary btn-sm" onClick={() => setAdding(true)}>+ New booking</button></div>
+      {adding && <NewBooking onClose={() => setAdding(false)} onCreated={() => { setAdding(false); changed(); }} />}
       <div class="stats">
         <a class="stat" href="#/bookings"><small>Requests to confirm</small><b style="color:var(--warn)">{data.pending}</b></a>
         <a class="stat" href="#/bookings"><small>Confirmed today</small><b>{data.today}</b></a>

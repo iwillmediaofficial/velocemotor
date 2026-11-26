@@ -8,7 +8,7 @@ import { verifyAdmin } from '../_lib/auth';
 import {
   adminBookingEmail, adminEnquiryEmail, customerBookingEmail, sendEmail, statusEmail, type BookingRow,
 } from '../_lib/email';
-import { adminBookingUpdateSchema, bookingSchema, enquirySchema, fieldErrors } from '../../src/lib/schemas';
+import { adminBookingUpdateSchema, adminCreateBookingSchema, bookingSchema, enquirySchema, fieldErrors } from '../../src/lib/schemas';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVars }>().basePath('/api');
 
@@ -137,6 +137,47 @@ admin.use('*', async (c, next) => {
   if (!user) return c.json({ error: 'UNAUTHORIZED', message: 'Please sign in as an admin.' }, 401);
   c.set('adminEmail', user.email);
   await next();
+});
+
+// Create a booking taken by phone / walk-in / WhatsApp. Uses the same slots and capacity as online bookings.
+admin.post('/bookings', async (c) => {
+  const parsed = adminCreateBookingSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: 'VALIDATION', message: 'Please check the highlighted fields.', fields: fieldErrors(parsed.error) }, 400);
+  const d = parsed.data;
+
+  let b: BookingRow;
+  try {
+    b = await rpc<BookingRow>(c.env, 'admin_create_booking', {
+      p_service: d.service, p_vehicle_type: d.vehicle_type, p_vehicle: d.vehicle, p_name: d.name, p_phone: d.phone,
+      p_email: d.email, p_date: d.date, p_slot: d.slot, p_notes: d.notes, p_admin_note: d.admin_note,
+      p_status: d.status, p_price: d.price ?? null, p_source: d.source,
+    });
+  } catch (e) {
+    const known: Record<string, [number, string]> = {
+      SLOT_FULL: [409, 'That time is already full with confirmed bookings. Pick another time, or save it as a pending request.'],
+      CLOSED: [409, 'The workshop is closed on that day (see Settings).'],
+      DATE_IN_PAST: [400, 'That date is in the past.'],
+      SERVICE_NOT_FOR_VEHICLE: [400, 'That service is not offered for this vehicle type (see Services).'],
+      INVALID_SLOT: [400, 'That time is not one of the booking slots (see Settings).'],
+    };
+    if (e instanceof DbError && known[e.message]) {
+      const [status, message] = known[e.message];
+      return c.json({ error: e.message, message }, status as 400 | 409);
+    }
+    throw e;
+  }
+
+  c.executionCtx.waitUntil(caches.default.delete(new Request(new URL('/api/slots', c.req.url).toString())));
+
+  let emailed = false;
+  if (d.notify && b.email) {
+    const [svc] = await select<{ name: string }[]>(c.env, `services?select=name&id=eq.${encodeURIComponent(b.service_id)}`);
+    const name = svc?.name ?? b.service_id;
+    const mail = b.status === 'confirmed' ? statusEmail(c.env, b, name) : customerBookingEmail(c.env, b, name);
+    c.executionCtx.waitUntil(sendEmail(c.env, b.email, mail.subject, mail.html));
+    emailed = true;
+  }
+  return c.json({ booking: b, emailed }, 201);
 });
 
 // Update status / note / date+slot; emails the customer when the status changes.

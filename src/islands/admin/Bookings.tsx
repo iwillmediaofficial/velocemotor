@@ -2,10 +2,11 @@ import { useEffect, useState } from 'preact/hooks';
 import { adminApi, ago, errMsg, must, sb, todayIST } from './lib';
 import { Empty, Loading, Modal, Status, useToast } from './ui';
 import { fmtDate, fmtTime, inr } from '../../lib/format';
-import { BOOKING_STATUSES, vehicleTypeLabel } from '../../lib/schemas';
+import { BOOKING_SOURCES, BOOKING_STATUSES, vehicleTypeLabel } from '../../lib/schemas';
+import NewBooking from './NewBooking';
 
 export interface BookingListRow {
-  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null; quoted_price: number | null;
+  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null; quoted_price: number | null; source: string;
   booking_date: string; slot: string; status: string; notes: string | null; admin_note: string | null; created_at: string;
   service_id: string; services: { name: string } | null; products: { name: string } | null;
 }
@@ -14,7 +15,7 @@ export interface BookingListRow {
 const BLOCKING = ['confirmed', 'rescheduled', 'completed'];
 const isBlocking = (s: string) => BLOCKING.includes(s);
 
-const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
+const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,source,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
 const PAGE = 25;
 
 /* ---------- slot queue (who asked first for each date + time) ---------- */
@@ -64,6 +65,7 @@ export default function Bookings({ onChange }: { onChange: () => void }) {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [f, setF] = useState({ status: 'pending', date: '', q: '', upcoming: false });
+  const [adding, setAdding] = useState(false);
 
   const load = async () => {
     let q = sb().from('bookings').select(COLS, { count: 'exact' });
@@ -96,7 +98,10 @@ export default function Bookings({ onChange }: { onChange: () => void }) {
         </select>
         <input class="input" type="date" aria-label="Date" value={f.date} onChange={(e) => set({ date: e.currentTarget.value })} />
         <label style="display:flex;gap:6px;align-items:center;font-size:.9rem"><input type="checkbox" checked={f.upcoming} onChange={(e) => set({ upcoming: e.currentTarget.checked })} /> Upcoming only</label>
+        <span style="flex:1" />
+        <button class="btn btn-primary btn-sm" onClick={() => setAdding(true)}>+ New booking</button>
       </div>
+      {adding && <NewBooking onClose={() => setAdding(false)} onCreated={() => { setAdding(false); load(); onChange(); }} />}
       {f.status === 'pending' && <p class="muted" style="font-size:.85rem;margin:-6px 0 12px">Requests do not hold a slot until you confirm them. They are listed in the order they arrived; #1 asked first for that time.</p>}
       {rows ? <BookingTable rows={rows} onChanged={() => { load(); onChange(); }} /> : <Loading />}
       {total > PAGE && (
@@ -124,7 +129,7 @@ export function BookingTable({ rows, onChanged }: { rows: BookingListRow[]; onCh
           <tbody>
             {rows.map((b) => (
               <tr class="click" tabIndex={0} onClick={() => setOpenId(b.id)} onKeyDown={(e) => e.key === 'Enter' && setOpenId(b.id)}>
-                <td><b>{b.ref}</b></td>
+                <td><b>{b.ref}</b>{b.source && b.source !== 'online' && <><br /><span class="src-badge">{BOOKING_SOURCES[b.source as keyof typeof BOOKING_SOURCES]}</span></>}</td>
                 <td>{b.name}<br /><small class="muted">{b.phone} · {[vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(': ')}</small></td>
                 <td>{b.services?.name ?? b.service_id}{b.quoted_price != null && <><br /><small class="muted">{inr(b.quoted_price)}</small></>}</td>
                 <td>{fmtDate(b.booking_date)}<br /><small class="muted">{fmtTime(b.slot)}</small></td>
@@ -198,6 +203,7 @@ function BookingModal({ id, onOpen, onClose, onSaved }: { id: string; onOpen: (i
         <dt>Service</dt><dd>{b.services?.name ?? b.service_id}</dd>
         <dt>Quoted price</dt><dd>{b.quoted_price != null ? <>{inr(b.quoted_price)} <small class="muted">(price shown to the customer when booking)</small></> : '—'}</dd>
         <dt>Requested time</dt><dd>{fmtDate(b.booking_date)} · {fmtTime(b.slot)}</dd>
+        <dt>Booked via</dt><dd>{BOOKING_SOURCES[(b.source ?? 'online') as keyof typeof BOOKING_SOURCES]}</dd>
         <dt>Received</dt><dd>{new Date(b.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} ({ago(b.created_at)})</dd>
         <dt>Customer</dt><dd>{b.name}</dd>
         <dt>Phone</dt><dd><a href={`tel:+91${phone10}`}>{b.phone}</a> · <a target="_blank" rel="noopener" style="color:var(--wa)" href={`https://wa.me/91${phone10}`}>WhatsApp</a></dd>

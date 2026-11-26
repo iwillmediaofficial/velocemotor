@@ -56,6 +56,27 @@ export type EnquiryInput = z.input<typeof enquirySchema>;
 
 export const BOOKING_STATUSES = ['pending', 'confirmed', 'rescheduled', 'completed', 'cancelled'] as const;
 
+/** Where a booking came from. Online = the website form; the rest are entered by the admin. */
+export const BOOKING_SOURCES = { online: 'Website', phone: 'Phone call', walk_in: 'Walk-in', whatsapp: 'WhatsApp' } as const;
+
+export const adminCreateBookingSchema = z.object({
+  source: z.enum(['phone', 'walk_in', 'whatsapp'], { error: 'Choose how the customer booked' }),
+  status: z.enum(['confirmed', 'pending']).default('confirmed'),
+  service: z.string().regex(/^[a-z0-9-]+$/, 'Choose a service'),
+  vehicle_type: z.enum(['bike', 'scooter', 'ev', 'car'], { error: 'Choose the vehicle type' }),
+  vehicle: z.string().trim().min(2, 'Enter the vehicle').max(120),
+  name: z.string().trim().min(2, 'Enter the customer name').max(100),
+  phone,
+  email: optEmail,
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date'),
+  slot: z.string().regex(/^\d{2}:\d{2}$/, 'Pick a time'),
+  price: z.number().min(0, 'Price cannot be negative').max(10_000_000).nullable().optional(),
+  notes: z.string().trim().max(1000).optional().default(''),
+  admin_note: z.string().trim().max(2000).optional().default(''),
+  notify: z.boolean().optional().default(true),
+});
+export type AdminCreateBookingInput = z.input<typeof adminCreateBookingSchema>;
+
 export const adminBookingUpdateSchema = z.object({
   status: z.enum(BOOKING_STATUSES).optional(),
   admin_note: z.string().max(2000).optional(),
