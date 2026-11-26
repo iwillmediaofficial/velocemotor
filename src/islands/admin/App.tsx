@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Session } from '@supabase/supabase-js';
-import { adminApi, ago, errMsg, sb } from './lib';
-import { Loading, ToastProvider, useToast } from './ui';
+import { adminApi, ago, sb } from './lib';
+import { Loading, ToastProvider } from './ui';
 import Dashboard from './Dashboard';
 import Bookings from './Bookings';
 import Enquiries from './Enquiries';
@@ -92,8 +92,11 @@ function Shell({ session }: { session: Session }) {
   const [tab, setTab] = useState<Tab>(readTab());
   const [pub, setPub] = useState<{ content_updated_at: string; last_publish_at: string | null } | null>(null);
   const [counts, setCounts] = useState({ bookings: 0, enquiries: 0 });
-  const [publishing, setPublishing] = useState(false);
-  const toast = useToast();
+  // Automatic publishing: after a catalogue change the site rebuilds by itself (no button).
+  const [sync, setSync] = useState<'idle' | 'waiting' | 'off'>('idle');
+  const [now, setNow] = useState(Date.now());
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hostingOff = useRef(false); // set once the server says publishing isn't configured
 
   useEffect(() => {
     const on = () => setTab(readTab());
@@ -107,20 +110,44 @@ function Shell({ session }: { session: Session }) {
       sb().from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       sb().from('enquiries').select('id', { count: 'exact', head: true }).eq('status', 'new'),
     ]);
-    if (s.data) setPub(s.data);
+    if (s.data) {
+      setPub(s.data);
+      if (isDirty(s.data)) schedulePublish(20_000); // wait for more edits, then rebuild once
+    }
     setCounts({ bookings: b.count ?? 0, enquiries: e.count ?? 0 });
   };
   useEffect(() => { refreshMeta(); }, [tab]);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => { clearInterval(t); clearTimeout(timer.current); };
+  }, []);
 
-  const dirty = pub && (!pub.last_publish_at || Date.parse(pub.content_updated_at) > Date.parse(pub.last_publish_at));
-  const publish = async () => {
-    setPublishing(true);
-    try {
-      const r = await adminApi<{ last_publish_at: string }>('/publish', { method: 'POST' });
-      setPub((p) => (p ? { ...p, last_publish_at: r.last_publish_at } : p));
-      toast('Publishing started. The website will update in about 1–2 minutes.', 'info');
-    } catch (e) { toast(errMsg(e), 'bad'); } finally { setPublishing(false); }
-  };
+  function schedulePublish(delay: number) {
+    if (hostingOff.current) return;
+    clearTimeout(timer.current);
+    setSync('waiting');
+    timer.current = setTimeout(async () => {
+      try {
+        const r = await adminApi<{ last_publish_at: string }>('/publish', { method: 'POST' });
+        setPub((p) => (p ? { ...p, last_publish_at: r.last_publish_at } : p));
+        setSync('idle');
+        setNow(Date.now());
+      } catch (e) {
+        const err = e as { error?: string; retryAfter?: number };
+        if (err.error === 'NOT_CONFIGURED') { hostingOff.current = true; setSync('off'); }            // hosting not connected yet (e.g. localhost)
+        else if (err.error === 'TOO_SOON') schedulePublish(((err.retryAfter ?? 60) + 3) * 1000);
+        else schedulePublish(60_000);                                   // network / Cloudflare hiccup: try again
+      }
+    }, delay);
+  }
+
+  const dirty = pub ? isDirty(pub) : false;
+  const building = !!pub?.last_publish_at && now - Date.parse(pub.last_publish_at) < 150_000;
+  const status =
+    sync === 'off' ? { dot: 'off', text: 'Changes saved · the live website will update automatically once hosting is connected' }
+    : dirty ? { dot: 'pending', text: 'Changes saved · updating the website shortly…' }
+    : building ? { dot: 'building', text: 'Updating the website (about 2 minutes)…' }
+    : { dot: '', text: `Website up to date${pub?.last_publish_at ? ` · updated ${ago(pub.last_publish_at)}` : ''}` };
 
   const Page = { dashboard: Dashboard, bookings: Bookings, enquiries: Enquiries, products: Products, services: Services, vehicles: Vehicles, settings: SettingsPage }[tab];
   const title = TABS.find(([k]) => k === tab)![1];
@@ -144,13 +171,13 @@ function Shell({ session }: { session: Session }) {
       <div class="admin-main">
         <div class="admin-top">
           <h1>{title}</h1>
-          <div class="publish">
-            <span><span class={`dot ${dirty ? 'pending' : ''}`} />{dirty ? 'Unpublished changes' : 'Website up to date'}{pub?.last_publish_at ? ` · last published ${ago(pub.last_publish_at)}` : ''}</span>
-            <button class="btn btn-primary btn-sm" disabled={!dirty || publishing} onClick={publish} title="Rebuild the public website with your latest changes">{publishing ? 'Publishing…' : 'Publish changes'}</button>
-          </div>
+          <div class="publish" role="status"><span class={`dot ${status.dot}`} />{status.text}</div>
         </div>
         <Page onChange={refreshMeta} />
       </div>
     </div>
   );
 }
+
+const isDirty = (p: { content_updated_at: string; last_publish_at: string | null }) =>
+  !p.last_publish_at || Date.parse(p.content_updated_at) > Date.parse(p.last_publish_at);

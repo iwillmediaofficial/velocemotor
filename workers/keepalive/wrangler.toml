@@ -1,12 +1,16 @@
-name = "velocemotor-keepalive"
+name = "velocemotor-cron"
 main = "index.ts"
 compatibility_date = "2026-11-01"
 workers_dev = false
 
 [triggers]
-crons = ["30 3 * * *"] # 09:00 IST daily
+crons = ["*/10 * * * *"] # every 10 minutes: keep Supabase awake + auto-publish safety net
 
 [vars]
 SUPABASE_URL = "https://ezynivufmaeftqymvawu.supabase.co"
 # Publishable (public) key — safe to commit.
 SUPABASE_PUBLISHABLE_KEY = "sb_publishable_fUXReHRo475uwYU25I00vA_L0nNGknA"
+
+# Secrets (set with `npx wrangler secret put <NAME> --config workers/keepalive/wrangler.toml`):
+#   SUPABASE_SERVICE_ROLE_KEY   same Supabase secret key as the Pages project
+#   PAGES_DEPLOY_HOOK           same deploy hook URL as the Pages project

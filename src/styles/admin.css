@@ -73,3 +73,6 @@ body{background:#f1f2f4}
 .queue{margin:8px 0 0 20px;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
 .queue li.me{font-weight:600}
 .atools .chips{margin-right:6px}
+.dot.off{background:#9aa0a8}
+.dot.building{background:var(--volt-500);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}

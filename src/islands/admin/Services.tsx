@@ -22,7 +22,7 @@ export default function Services({ onChange }: { onChange: () => void }) {
   useEffect(() => { load(); }, []);
 
   const patch = async (id: string, values: Partial<Row>) => {
-    try { must(await sb().from('services').update(values).eq('id', id).select('id')); await load(); onChange(); toast('Saved. Click "Publish changes" to update the website.'); }
+    try { must(await sb().from('services').update(values).eq('id', id).select('id')); await load(); onChange(); toast('Saved. The website will update automatically.'); }
     catch (e) { toast(errMsg(e), 'bad'); }
   };
 
@@ -35,7 +35,7 @@ export default function Services({ onChange }: { onChange: () => void }) {
     if (!confirm(`Delete the service "${s.name}" permanently?`)) return;
     try {
       must(await sb().from('services').delete().eq('id', s.id).select('id'));
-      toast('Service deleted. Click "Publish changes" to update the website.');
+      toast('Service deleted. The website will update automatically.');
       await load(); onChange();
     } catch (e) {
       toast(errMsg(e).includes('foreign key') ? 'This service has bookings, so it cannot be deleted. Hide it instead.' : errMsg(e), 'bad');
@@ -46,7 +46,7 @@ export default function Services({ onChange }: { onChange: () => void }) {
   return (
     <>
       <div class="atools">
-        <p class="muted" style="font-size:.85rem;flex:1">Services appear on the Services page and in the booking form. Changes go live after you click "Publish changes".</p>
+        <p class="muted" style="font-size:.85rem;flex:1">Services appear on the Services page and in the booking form. The website updates automatically a couple of minutes after you save.</p>
         <button class="btn btn-primary btn-sm" onClick={() => setEditing('new')}>+ Add service</button>
       </div>
       {!rows.length ? <Empty>No services yet.</Empty> : (
@@ -79,7 +79,7 @@ export default function Services({ onChange }: { onChange: () => void }) {
           existingIds={rows.map((r) => r.id)}
           nextSort={Math.max(0, ...rows.map((r) => r.sort)) + 1}
           onClose={() => setEditing(null)}
-          onSaved={async () => { setEditing(null); await load(); onChange(); toast('Saved. Click "Publish changes" to update the website.'); }}
+          onSaved={async () => { setEditing(null); await load(); onChange(); toast('Saved. The website will update automatically.'); }}
         />
       )}
     </>

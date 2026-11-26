@@ -10,9 +10,9 @@ Catalogue, online booking and admin dashboard for Veloce Motor (Angamaly, Kerala
 - Search and filters run in the browser over data embedded in the page.
 - Only **bookings, enquiries, the slot calendar and admin actions** call `/api/*` (Pages Functions → Supabase).
 - `GET /api/slots` is cached at the edge for 60 s. `create_booking` re-checks capacity inside a locked transaction, so a slot can never be double-booked.
-- Admin edits are saved to Supabase immediately. The public site updates when the admin clicks **Publish changes**, which triggers a Pages rebuild, at most once every 2 minutes.
+- Admin edits are saved to Supabase immediately, and the public site **rebuilds automatically**. The dashboard triggers a Pages deploy hook about 20 s after the last edit (at most once every 2 minutes), and the cron Worker re-checks every 10 minutes in case the admin closed the tab first.
 - Product photos are resized **in the admin's browser** to 480/960/1600 px WebP and stored in R2. R2 has no egress fees, and there is no paid image service.
-- `workers/keepalive` pings Supabase daily, because free projects pause after 7 days with no activity.
+- `workers/keepalive` (`velocemotor-cron`) runs every 10 minutes. It keeps Supabase awake (free projects pause after 7 days with no activity) and publishes any pending changes.
 
 ## Project layout
 
@@ -23,7 +23,7 @@ src/lib/              catalogue fetch (build time), shared zod schemas, formatti
 functions/api/        Pages Function: /api/slots, /api/booking, /api/enquiry, /api/admin/*
 functions/media/      fallback image server for /media/* (dev / before the R2 custom domain exists)
 supabase/migrations/  schema + RLS, booking functions, seed data
-workers/keepalive/    daily cron Worker
+workers/keepalive/    cron Worker: keep-alive + auto-publish safety net
 ```
 
 ## Local development
@@ -61,7 +61,8 @@ npm run build && npm run dev:api   # full site + API on http://localhost:8788
 4. **Deploy hook:** go to Pages → Settings → Builds → Deploy hooks, create one and save its URL as the `PAGES_DEPLOY_HOOK` secret.
 5. **Custom domain:** add `velocemotor.com` to the Pages project.
 6. **Rate limiting** (free plan: 1 rule): Security → WAF → Rate limiting. Use path starts with `/api/`, 20 requests per 10 s per IP, then block.
-7. **Keep-alive:** run `npm run deploy:keepalive`.
+7. **Cron Worker:** run `npm run deploy:keepalive`, then set its secrets `SUPABASE_SERVICE_ROLE_KEY` and `PAGES_DEPLOY_HOOK`:
+   `npx wrangler secret put PAGES_DEPLOY_HOOK --config workers/keepalive/wrangler.toml`
 
 ### Resend (email)
 1. Add the domain `velocemotor.com` and create the 3 DNS records Resend shows (in Cloudflare DNS).
