@@ -148,9 +148,20 @@ admin.post('/bookings/:id', async (c) => {
   const [before] = await select<BookingRow[]>(c.env, `bookings?select=status,booking_date,slot&id=eq.${id}`);
   if (!before) return c.json({ error: 'NOT_FOUND', message: 'Booking not found.' }, 404);
 
-  const b = await rpc<BookingRow>(c.env, 'admin_update_booking', {
-    p_id: id, p_status: d.status ?? null, p_note: d.admin_note ?? null, p_date: d.date ?? null, p_slot: d.slot ?? null,
-  });
+  let b: BookingRow;
+  try {
+    b = await rpc<BookingRow>(c.env, 'admin_update_booking', {
+      p_id: id, p_status: d.status ?? null, p_note: d.admin_note ?? null, p_date: d.date ?? null, p_slot: d.slot ?? null,
+    });
+  } catch (e) {
+    if (e instanceof DbError && e.message === 'SLOT_FULL') {
+      return c.json({ error: 'SLOT_FULL', message: 'That time is already full with confirmed bookings. Pick another time, or decline this request.' }, 409);
+    }
+    if (e instanceof DbError && e.message === 'CLOSED') {
+      return c.json({ error: 'CLOSED', message: 'The workshop is closed on that day (see Settings). Pick another date.' }, 409);
+    }
+    throw e;
+  }
 
   c.executionCtx.waitUntil(caches.default.delete(new Request(new URL('/api/slots', c.req.url).toString())));
 

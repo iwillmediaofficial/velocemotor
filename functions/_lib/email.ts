@@ -43,30 +43,30 @@ export function bookingDetails(b: BookingRow, serviceName: string): string {
 }
 
 export function customerBookingEmail(env: Env, b: BookingRow, serviceName: string) {
-  const subject = `Booking received: ${serviceName} on ${fmtDate(b.booking_date)} (${b.ref})`;
-  const html = layout(env, `Thanks, ${b.name.split(' ')[0]}! We've received your booking.`,
-    `<p style="font-size:15px;line-height:1.6">Our team will confirm your slot shortly. Payment is made at the workshop.</p>${bookingDetails(b, serviceName)}
+  const subject = `Booking request received: ${serviceName} on ${fmtDate(b.booking_date)} (${b.ref})`;
+  const html = layout(env, `Thanks, ${b.name.split(' ')[0]}! We've received your booking request.`,
+    `<p style="font-size:15px;line-height:1.6"><b>Your time is not confirmed yet.</b> Our team will check availability and send you a confirmation email. If the time is taken, we'll contact you to arrange another. Payment is made at the workshop.</p>${bookingDetails(b, serviceName).replace('>Date<', '>Requested date<').replace('>Time<', '>Requested time<')}
      <p style="font-size:14px;line-height:1.6;margin-top:20px">Need to change something? Just reply to this email or WhatsApp us.</p>`);
   return { subject, html };
 }
 
 export function adminBookingEmail(env: Env, b: BookingRow, serviceName: string) {
-  const subject = `New booking ${b.ref}: ${serviceName}, ${fmtDate(b.booking_date)} ${fmtTime(b.slot)}`;
-  const html = layout(env, 'New booking',
+  const subject = `New booking request ${b.ref}: ${serviceName}, ${fmtDate(b.booking_date)} ${fmtTime(b.slot)}`;
+  const html = layout(env, 'New booking request (needs your confirmation)',
     `${bookingDetails(b, serviceName)}<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:8px">${row('Customer', b.name)}${row('Phone', b.phone)}${row('Email', b.email ?? '—')}${row('Notes', b.notes ?? '—')}</table>
-     <p style="margin-top:20px"><a href="${env.SITE_URL}/admin#/bookings" style="background:#1E6FE8;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-size:14px">Open in admin</a></p>`);
+     <p style="margin-top:20px"><a href="${env.SITE_URL}/admin#/bookings" style="background:#1E6FE8;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-size:14px">Review & confirm</a></p>`);
   return { subject, html };
 }
 
 const STATUS_TEXT: Record<string, string> = {
-  confirmed: 'Your booking is confirmed. See you at the workshop!',
-  rescheduled: 'Your booking has been moved to a new time.',
+  confirmed: 'Good news: your booking is confirmed. See you at the workshop!',
+  rescheduled: 'Your booking is confirmed for the new time below. If it does not suit you, just reply to this email.',
   completed: 'Your service is complete. Thank you for choosing Veloce Motor!',
-  cancelled: 'Your booking has been cancelled. If this is unexpected, please contact us.',
+  cancelled: 'Your booking has been cancelled. If you would like another time, please book again or reply to this email and we will help.',
 };
 
 export function statusEmail(env: Env, b: BookingRow, serviceName: string) {
-  const title = { confirmed: 'Booking confirmed', rescheduled: 'Booking rescheduled', completed: 'Service completed', cancelled: 'Booking cancelled' }[b.status] ?? 'Booking update';
+  const title = { confirmed: 'Booking confirmed', rescheduled: 'Booking confirmed for a new time', completed: 'Service completed', cancelled: 'Booking cancelled' }[b.status] ?? 'Booking update';
   const subject = `${title}: ${b.ref}`;
   const html = layout(env, title, `<p style="font-size:15px;line-height:1.6">${esc(STATUS_TEXT[b.status] ?? '')}</p>${bookingDetails(b, serviceName)}`);
   return { subject, html };

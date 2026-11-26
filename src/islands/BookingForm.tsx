@@ -94,7 +94,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
         <dt>Time</dt><dd>{slot ? fmtTime(slot) : '—'}</dd>
       </dl>
       <div class="hairline" style="margin:18px 0" />
-      <p class="muted" style="font-size:.82rem">Pay at the workshop. Need to change it? Just call or WhatsApp us.</p>
+      <p class="muted" style="font-size:.82rem">This is a request: we confirm every booking by email. Pay at the workshop.</p>
     </aside>
   );
 
@@ -103,11 +103,11 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
       <div class="container book-wrap" id="booking">
         <div class="panel success" role="status">
           <div class="tick" dangerouslySetInnerHTML={{ __html: icons.check }} />
-          <h2>Booking received!</h2>
+          <h2>Booking request sent!</h2>
           <p class="muted" style="margin-top:8px">Your reference number</p>
           <div class="ref">{done.ref}</div>
           <p>{svc?.name} · {fmtDate(date)} at {fmtTime(slot)}</p>
-          <p class="muted" style="margin:10px auto 22px;max-width:460px">We've emailed a confirmation to <b>{form.email}</b>. Our team will confirm your slot shortly.</p>
+          <p class="muted" style="margin:10px auto 22px;max-width:460px"><b>Your time is not confirmed yet.</b> We'll check availability and email <b>{form.email}</b> once your booking is confirmed. If the time is taken, we'll contact you to arrange another.</p>
           <div class="ctas" style="justify-content:center">
             {whatsapp && <a class="btn btn-wa" target="_blank" rel="noopener" href={waLink(whatsapp, `Hi, I just booked ${svc?.name} (Ref ${done.ref}) for ${fmtDate(date)} ${fmtTime(slot)}.`)}>Message us on WhatsApp</a>}
             <a class="btn btn-outline" href="/">Back to Home</a>
@@ -185,7 +185,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
 
           {step === 3 && (
             <form class="form-grid" noValidate onSubmit={submit}>
-              <div class="full"><h2 style="font-size:1.25rem">Your details</h2><p class="muted" style="margin-top:4px">We'll send the confirmation to your email.</p></div>
+              <div class="full"><h2 style="font-size:1.25rem">Your details</h2><p class="muted" style="margin-top:4px">We'll email you as soon as your booking is confirmed.</p></div>
               <div class="field"><label for="b-name">Full name *</label><input {...field('name')} autoComplete="name" required /><Err k="name" /></div>
               <div class="field"><label for="b-phone">Mobile number *</label><input {...field('phone')} inputMode="tel" autoComplete="tel" placeholder="10-digit mobile" required /><Err k="phone" /></div>
               <div class="field"><label for="b-email">Email *</label><input {...field('email')} type="email" autoComplete="email" required /><Err k="email" /></div>
@@ -194,7 +194,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
               <Turnstile onToken={setToken} resetKey={resetKey} />
               <div class="full form-nav" style="margin-top:6px">
                 <button type="button" class="btn btn-outline" onClick={() => goto(2)}>Back</button>
-                <button class="btn btn-primary" type="submit" disabled={busy}>{busy ? 'Booking…' : 'Confirm Booking'}</button>
+                <button class="btn btn-primary" type="submit" disabled={busy}>{busy ? 'Sending…' : 'Send Booking Request'}</button>
               </div>
             </form>
           )}

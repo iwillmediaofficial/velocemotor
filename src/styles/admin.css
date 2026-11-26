@@ -68,3 +68,8 @@ body{background:#f1f2f4}
 .toast{background:var(--carbon-950);color:#fff;padding:.75rem 1.1rem;border-radius:var(--r-md);font-size:.9rem;box-shadow:var(--shadow);max-width:92vw}
 .toast.ok{border-left:4px solid var(--success)}.toast.info{border-left:4px solid var(--volt-500)}.toast.bad{border-left:4px solid var(--danger)}
 @media(max-width:860px){.admin{grid-template-columns:minmax(0,1fr)}.side{position:static;height:auto}.side>img{display:none}.side nav{flex-direction:row;flex-wrap:wrap}.side .bottom{flex-direction:row;flex-wrap:wrap;margin-top:8px}.admin-main{padding:20px 16px}}
+.q-first{color:var(--success)}
+.q-full{color:var(--danger);font-weight:600}
+.queue{margin:8px 0 0 20px;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.queue li.me{font-weight:600}
+.atools .chips{margin-right:6px}
