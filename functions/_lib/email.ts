@@ -35,12 +35,12 @@ const row = (k: string, v: unknown) =>
   `<tr><td style="padding:6px 12px 6px 0;color:#5d636c;font-size:14px;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0;font-size:14px"><b>${esc(v)}</b></td></tr>`;
 
 export interface BookingRow {
-  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null;
+  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null; quoted_price: number | string | null;
   booking_date: string; slot: string; notes: string | null; status: string; service_id: string;
 }
 
 export function bookingDetails(b: BookingRow, serviceName: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0">${row('Reference', b.ref)}${row('Service', serviceName)}${row('Date', fmtDate(b.booking_date))}${row('Time', fmtTime(b.slot))}${row('Vehicle', [vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(' · '))}</table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0">${row('Reference', b.ref)}${row('Service', serviceName)}${row('Date', fmtDate(b.booking_date))}${row('Time', fmtTime(b.slot))}${row('Vehicle', [vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(' · '))}${b.quoted_price != null ? row('Price', `₹${Number(b.quoted_price).toLocaleString('en-IN')} (estimate, final amount confirmed at the workshop)`) : ''}</table>`;
 }
 
 export function customerBookingEmail(env: Env, b: BookingRow, serviceName: string) {

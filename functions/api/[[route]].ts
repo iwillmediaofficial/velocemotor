@@ -20,6 +20,7 @@ const MESSAGES: Record<string, [number, string]> = {
   DATE_OUT_OF_RANGE: [400, 'Please pick a date within the booking window.'],
   INVALID_SERVICE: [400, 'That service is not available for online booking.'],
   INVALID_VEHICLE_TYPE: [400, 'Please choose your vehicle type.'],
+  SERVICE_NOT_FOR_VEHICLE: [400, 'That service is not available for your vehicle type. Please choose another service.'],
   NOT_FOUND: [404, 'Booking not found.'],
 };
 

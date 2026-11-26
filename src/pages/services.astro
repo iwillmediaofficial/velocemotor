@@ -3,9 +3,11 @@ import Base from '../layouts/Base.astro';
 import ServiceCard from '../components/ServiceCard.astro';
 import { getCatalog } from '../lib/catalog';
 import { inr } from '../lib/format';
+import { priceFrom } from '../lib/pricing';
 
 const { services } = await getCatalog();
 const inspection = services.find((s) => s.id === 'inspection');
+const inspectionFrom = inspection ? priceFrom(inspection) : null;
 ---
 <Base title="Services & Pricing" description="Suspension fitting, servicing, inspection and bike washing at the Veloce Motor workshop in Angamaly. Book a slot online and pay at the workshop." active="services">
   <div class="page-hero">
@@ -19,9 +21,9 @@ const inspection = services.find((s) => s.id === 'inspection');
   <section>
     <div class="container">
       <div class="svc-grid">{services.map((s) => <ServiceCard service={s} light />)}</div>
-      {inspection && (
+      {inspection && inspectionFrom !== null && (
         <div class="cta-band" style="margin-top:48px">
-          <div><h2>Not sure what your bike needs?</h2><p>Book an inspection for {inr(inspection.price_from)} and get an honest recommendation.</p></div>
+          <div><h2>Not sure what your bike needs?</h2><p>Book an inspection from {inr(inspectionFrom)} and get an honest recommendation.</p></div>
           <a class="btn btn-primary" href="/book?service=inspection">Book Inspection</a>
         </div>
       )}

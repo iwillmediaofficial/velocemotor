@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'preact/hooks';
 import { adminApi, ago, errMsg, must, sb, todayIST } from './lib';
 import { Empty, Loading, Modal, Status, useToast } from './ui';
-import { fmtDate, fmtTime } from '../../lib/format';
+import { fmtDate, fmtTime, inr } from '../../lib/format';
 import { BOOKING_STATUSES, vehicleTypeLabel } from '../../lib/schemas';
 
 export interface BookingListRow {
-  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null;
+  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null; quoted_price: number | null;
   booking_date: string; slot: string; status: string; notes: string | null; admin_note: string | null; created_at: string;
   service_id: string; services: { name: string } | null; products: { name: string } | null;
 }
@@ -14,7 +14,7 @@ export interface BookingListRow {
 const BLOCKING = ['confirmed', 'rescheduled', 'completed'];
 const isBlocking = (s: string) => BLOCKING.includes(s);
 
-const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
+const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
 const PAGE = 25;
 
 /* ---------- slot queue (who asked first for each date + time) ---------- */
@@ -126,7 +126,7 @@ export function BookingTable({ rows, onChanged }: { rows: BookingListRow[]; onCh
               <tr class="click" tabIndex={0} onClick={() => setOpenId(b.id)} onKeyDown={(e) => e.key === 'Enter' && setOpenId(b.id)}>
                 <td><b>{b.ref}</b></td>
                 <td>{b.name}<br /><small class="muted">{b.phone} · {[vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(': ')}</small></td>
-                <td>{b.services?.name ?? b.service_id}</td>
+                <td>{b.services?.name ?? b.service_id}{b.quoted_price != null && <><br /><small class="muted">{inr(b.quoted_price)}</small></>}</td>
                 <td>{fmtDate(b.booking_date)}<br /><small class="muted">{fmtTime(b.slot)}</small></td>
                 <td><QueueCell b={b} info={queue[key(b.booking_date, b.slot)]} /></td>
                 <td style="white-space:nowrap"><small>{ago(b.created_at)}</small></td>
@@ -196,6 +196,7 @@ function BookingModal({ id, onOpen, onClose, onSaved }: { id: string; onOpen: (i
       <dl class="kv">
         <dt>Status</dt><dd><Status s={b.status} /></dd>
         <dt>Service</dt><dd>{b.services?.name ?? b.service_id}</dd>
+        <dt>Quoted price</dt><dd>{b.quoted_price != null ? <>{inr(b.quoted_price)} <small class="muted">(price shown to the customer when booking)</small></> : '—'}</dd>
         <dt>Requested time</dt><dd>{fmtDate(b.booking_date)} · {fmtTime(b.slot)}</dd>
         <dt>Received</dt><dd>{new Date(b.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} ({ago(b.created_at)})</dd>
         <dt>Customer</dt><dd>{b.name}</dd>

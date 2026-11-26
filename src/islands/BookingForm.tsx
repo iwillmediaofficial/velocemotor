@@ -6,6 +6,7 @@ import { api, type ApiError } from '../lib/api';
 import { fmtDate, fmtTime, inr, waLink } from '../lib/format';
 import { icons } from '../lib/icons';
 import Turnstile from './Turnstile';
+import { priceFor, priceFrom } from '../lib/pricing';
 
 interface SlotInfo { slot: string; remaining: number; available: boolean; reason: 'closed' | 'past' | 'full' | null }
 interface Day { date: string; slots: SlotInfo[] }
@@ -41,18 +42,36 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
   useEffect(() => {
     const u = new URLSearchParams(location.search);
     const s = u.get('service');
-    if (s && services.some((x) => x.id === s)) { setService(s); setStep(2); }
+    const vt = u.get('vehicle');
+    const validVt = vt && vt in VEHICLE_TYPES ? (vt as VehicleType) : null;
+    if (validVt) setForm((f) => ({ ...f, vehicle_type: validVt }));
+    const sv = services.find((x) => x.id === s);
+    if (sv) {
+      setService(sv.id);
+      // jump straight to the calendar only when we already know a vehicle type this service is offered for
+      if (validVt && priceFor(sv, validVt)) setStep(2);
+    }
     const p = u.get('product');
     if (p && products.some((x) => x.slug === p)) setProductSlug(p);
     loadSlots();
   }, []);
 
   const svc = services.find((s) => s.id === service);
+  const vType = (form.vehicle_type || null) as VehicleType | null;
+  const price = svc && vType ? priceFor(svc, vType) : null; // price & duration for this vehicle type
+
+  const chooseType = (t: VehicleType) => {
+    setForm((f) => ({ ...f, vehicle_type: t }));
+    setErrors((er) => { const { vehicle_type: _, ...rest } = er; return rest; });
+    if (svc && !priceFor(svc, t)) setService(''); // selected service isn't offered for this vehicle
+  };
   const product = products.find((p) => p.slug === productSlug);
   const day = days?.find((d) => d.date === date);
 
   const goto = (n: number) => {
+    if (n >= 2 && !vType) return setNotice('Please choose your vehicle type.');
     if (n >= 2 && !service) return setNotice('Please choose a service.');
+    if (n >= 2 && !price) return setNotice('That service is not available for your vehicle type.');
     if (n >= 3 && (!date || !slot)) return setNotice('Please pick a date and time.');
     setNotice('');
     setStep(n);
@@ -93,15 +112,15 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
       <span class="eyebrow">Summary</span>
       <h2 style="margin-top:8px;color:#fff;font-size:1.25rem">{svc ? svc.name : 'Choose a service'}</h2>
       <dl>
-        <dt>Price</dt><dd>{svc ? `From ${inr(svc.price_from)}` : '—'}</dd>
-        <dt>Duration</dt><dd>{svc ? `${svc.duration_min} min` : '—'}</dd>
+        <dt>Vehicle</dt><dd>{vType ? VEHICLE_TYPES[vType] : '—'}</dd>
+        <dt>Price</dt><dd>{price ? inr(price.price) : svc && priceFrom(svc) !== null ? `From ${inr(priceFrom(svc)!)}` : '—'}</dd>
+        <dt>Duration</dt><dd>{price ? `${price.duration_min} min` : '—'}</dd>
         {product && <><dt>Product</dt><dd>{product.name}</dd></>}
-        {form.vehicle_type && <><dt>Vehicle</dt><dd>{VEHICLE_TYPES[form.vehicle_type as VehicleType]}</dd></>}
         <dt>Date</dt><dd>{date ? fmtDate(date) : '—'}</dd>
         <dt>Time</dt><dd>{slot ? fmtTime(slot) : '—'}</dd>
       </dl>
       <div class="hairline" style="margin:18px 0" />
-      <p class="muted" style="font-size:.82rem">This is a request: we confirm every booking by email. Pay at the workshop.</p>
+      <p class="muted" style="font-size:.82rem">This is a request: we confirm every booking by email. Prices are estimates; the final amount is confirmed at the workshop, where you pay.</p>
     </aside>
   );
 
@@ -113,7 +132,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
           <h2>Booking request sent!</h2>
           <p class="muted" style="margin-top:8px">Your reference number</p>
           <div class="ref">{done.ref}</div>
-          <p>{svc?.name} · {fmtDate(date)} at {fmtTime(slot)}</p>
+          <p>{svc?.name}{vType ? ` (${VEHICLE_TYPES[vType]})` : ''} · {fmtDate(date)} at {fmtTime(slot)}{price ? ` · ${inr(price.price)}` : ''}</p>
           <p class="muted" style="margin:10px auto 22px;max-width:460px"><b>Your time is not confirmed yet.</b> We'll check availability and email <b>{form.email}</b> once your booking is confirmed. If the time is taken, we'll contact you to arrange another.</p>
           <div class="ctas" style="justify-content:center">
             {whatsapp && <a class="btn btn-wa" target="_blank" rel="noopener" href={waLink(whatsapp, `Hi, I just booked ${svc?.name} (Ref ${done.ref}) for ${fmtDate(date)} ${fmtTime(slot)}.`)}>Message us on WhatsApp</a>}
@@ -129,7 +148,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
     <div class="container book-wrap" id="booking">
       <div>
         <ol class="steps">
-          {['Service', 'Date & Time', 'Your Details'].map((t, i) => (
+          {['Vehicle & Service', 'Date & Time', 'Your Details'].map((t, i) => (
             <li class={step === i + 1 ? 'on' : step > i + 1 ? 'done' : ''} aria-current={step === i + 1 ? 'step' : undefined}>{i + 1}. {t}</li>
           ))}
         </ol>
@@ -137,19 +156,39 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
           {notice && <div class="alert bad" role="alert" style="margin-bottom:16px">{notice}</div>}
 
           {step === 1 && (
-            <fieldset style="border:0">
-              <legend><h2 style="font-size:1.25rem">Choose a service</h2></legend>
-              <p class="muted" style="margin:4px 0 18px">What can we help you with?</p>
-              <div class="svc-pick">
-                {services.map((s) => (
-                  <label>
-                    <input type="radio" name="service" value={s.id} checked={service === s.id} onChange={() => setService(s.id)} />
-                    <b>{s.name}</b><small>From {inr(s.price_from)} · {s.duration_min} min</small>
-                  </label>
-                ))}
-              </div>
+            <div>
+              <fieldset style="border:0">
+                <legend><h2 style="font-size:1.25rem">Your vehicle</h2></legend>
+                <p class="muted" style="margin:4px 0 14px">Prices depend on the type of vehicle.</p>
+                <div class="vtype" role="radiogroup">
+                  {(Object.keys(VEHICLE_TYPES) as VehicleType[]).map((t) => (
+                    <label class={vType === t ? 'on' : ''}>
+                      <input type="radio" name="vehicle_type" value={t} checked={vType === t} onChange={() => chooseType(t)} />
+                      {VEHICLE_TYPES[t]}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset style="border:0">
+                <legend><h2 style="font-size:1.25rem">Choose a service</h2></legend>
+                <p class="muted" style="margin:4px 0 14px">{vType ? `Prices for ${VEHICLE_TYPES[vType].toLowerCase()}.` : 'Choose your vehicle first to see its price.'}</p>
+                <div class="svc-pick">
+                  {services.map((s) => {
+                    const p = vType ? priceFor(s, vType) : null;
+                    const offered = !vType || !!p;
+                    const from = priceFrom(s);
+                    return (
+                      <label class={offered ? '' : 'off'}>
+                        <input type="radio" name="service" value={s.id} checked={service === s.id} disabled={!offered} onChange={() => setService(s.id)} />
+                        <b>{s.name}</b>
+                        <small>{p ? `${inr(p.price)} · ${p.duration_min} min` : !offered ? `Not available for ${VEHICLE_TYPES[vType!].toLowerCase()}` : from !== null ? `From ${inr(from)}` : 'Price on request'}</small>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <div class="form-nav"><span /><button type="button" class="btn btn-primary" onClick={() => goto(2)}>Continue</button></div>
-            </fieldset>
+            </div>
           )}
 
           {step === 2 && (
@@ -196,20 +235,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
               <div class="field"><label for="b-name">Full name *</label><input {...field('name')} autoComplete="name" required /><Err k="name" /></div>
               <div class="field"><label for="b-phone">Mobile number *</label><input {...field('phone')} inputMode="tel" autoComplete="tel" placeholder="10-digit mobile" required /><Err k="phone" /></div>
               <div class="field"><label for="b-email">Email *</label><input {...field('email')} type="email" autoComplete="email" required /><Err k="email" /></div>
-              <fieldset class="field full" style="border:0" aria-describedby={errors.vehicle_type ? 'b-vehicle_type-err' : undefined}>
-                <legend style="font-size:.8rem;font-weight:600;color:#3b4048;margin-bottom:6px">Vehicle type *</legend>
-                <div class="vtype">
-                  {(Object.keys(VEHICLE_TYPES) as VehicleType[]).map((t) => (
-                    <label class={form.vehicle_type === t ? 'on' : ''}>
-                      <input type="radio" name="vehicle_type" value={t} checked={form.vehicle_type === t}
-                        onChange={() => { setForm((f) => ({ ...f, vehicle_type: t })); setErrors((er) => { const { vehicle_type: _, ...rest } = er; return rest; }); }} />
-                      {VEHICLE_TYPES[t]}
-                    </label>
-                  ))}
-                </div>
-                <Err k="vehicle_type" />
-              </fieldset>
-              <div class="field full"><label for="b-vehicle">Vehicle brand & model *</label>
+              <div class="field full"><label for="b-vehicle">{vType ? `${VEHICLE_TYPES[vType]}: ` : ''}brand & model *</label>
                 <input {...field('vehicle')} list="vehicle-list" placeholder={form.vehicle_type ? TYPE_PLACEHOLDER[form.vehicle_type as VehicleType] : 'e.g. Honda Activa 6G'} required />
                 <datalist id="vehicle-list">
                   {vehicles.filter((v) => !form.vehicle_type || TYPE_SEGMENTS[form.vehicle_type as VehicleType].includes(v.seg ?? '')).map((v) => <option value={v.label} />)}

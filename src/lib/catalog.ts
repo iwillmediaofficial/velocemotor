@@ -1,6 +1,7 @@
 // BUILD-TIME ONLY. Reads the catalogue from Supabase once per build (5 small queries),
 // so visitors never hit the database while browsing.
-import type { Catalog, Product, ProductLite, Segment, Service, Settings, Vehicle } from './types';
+import type { Catalog, Product, ProductLite, Segment, Service, ServicePrice, Settings, Vehicle } from './types';
+import { sortPrices } from './pricing';
 
 const URL = import.meta.env.PUBLIC_SUPABASE_URL;
 const KEY = import.meta.env.PUBLIC_SUPABASE_KEY;
@@ -22,7 +23,9 @@ export function getCatalog(): Promise<Catalog> {
       get<(Omit<Product, 'fits'> & { product_fitment: { vehicle_id: string }[] })[]>(
         'products?select=id,slug,name,segment_id,position,short_desc,description,specs,price,mrp,images,is_featured,show_fitting,sort,product_fitment(vehicle_id)&is_active=eq.true&order=sort,name',
       ),
-      get<Service[]>('services?select=id,name,description,price_from,duration_min,is_bookable,sort&is_active=eq.true&order=sort'),
+      get<(Omit<Service, 'prices'> & { service_prices: ServicePrice[] })[]>(
+        'services?select=id,name,description,is_bookable,sort,service_prices(vehicle_type,price,duration_min)&is_active=eq.true&order=sort',
+      ),
       get<Settings[]>('settings?select=phone,whatsapp,email,address,hours&id=eq.1'),
     ]);
     const products: Product[] = rawProducts.map(({ product_fitment, ...p }) => ({
@@ -35,7 +38,10 @@ export function getCatalog(): Promise<Catalog> {
       segments,
       vehicles,
       products,
-      services: services.map((s) => ({ ...s, price_from: Number(s.price_from) })),
+      services: services.map(({ service_prices, ...s }) => ({
+        ...s,
+        prices: sortPrices(service_prices.map((p) => ({ ...p, price: Number(p.price) }))),
+      })),
       settings: settings[0] ?? { phone: '', whatsapp: '', email: '', address: '', hours: '' },
     };
   })();

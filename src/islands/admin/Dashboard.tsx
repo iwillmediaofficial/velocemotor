@@ -3,7 +3,7 @@ import { must, sb, todayIST } from './lib';
 import { Loading } from './ui';
 import { BookingTable, type BookingListRow } from './Bookings';
 
-const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
+const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,quoted_price,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
 
 export default function Dashboard({ onChange }: { onChange: () => void }) {
   const [data, setData] = useState<{

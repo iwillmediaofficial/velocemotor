@@ -2,14 +2,27 @@
 import type { Service } from '../lib/types';
 import { serviceIcon } from '../lib/icons';
 import { inr } from '../lib/format';
+import { priceFrom } from '../lib/pricing';
+import { VEHICLE_TYPES } from '../lib/schemas';
 
 interface Props { service: Service; light?: boolean }
 const { service: s, light = false } = Astro.props;
+const from = priceFrom(s);
 ---
 <div class:list={['svc', 'reveal', { light }]}>
   <div class="ico" set:html={serviceIcon(s.id)} />
   <h3>{s.name}</h3>
   <p>{s.description}</p>
-  <div class="meta"><span>From <b>{inr(s.price_from)}</b></span><span>{s.duration_min} min</span></div>
-  {s.is_bookable && <a class="btn btn-primary btn-sm" href={`/book?service=${s.id}`}>Book now</a>}
+  {s.prices.length > 0 && (
+    <table class="svc-prices">
+      <caption class="sr-only">Price by vehicle type</caption>
+      <tbody>
+        {s.prices.map((p) => (
+          <tr><th scope="row">{VEHICLE_TYPES[p.vehicle_type]}</th><td>{inr(p.price)}</td><td class="dur">{p.duration_min} min</td></tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+  <div class="meta">{from !== null ? <span>From <b>{inr(from)}</b></span> : <span>Price on request</span>}</div>
+  {s.is_bookable && s.prices.length > 0 && <a class="btn btn-primary btn-sm" href={`/book?service=${s.id}`}>Book now</a>}
 </div>

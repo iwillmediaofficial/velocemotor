@@ -19,8 +19,11 @@ export interface Product {
   sort: number;
   fits: string[]; // vehicle ids
 }
+export type VehicleTypeId = 'bike' | 'scooter' | 'ev' | 'car';
+/** Price and duration of a service for one vehicle type. No entry = not offered for that type. */
+export interface ServicePrice { vehicle_type: VehicleTypeId; price: number; duration_min: number }
 export interface Service {
-  id: string; name: string; description: string; price_from: number; duration_min: number; is_bookable: boolean; sort: number;
+  id: string; name: string; description: string; is_bookable: boolean; sort: number; prices: ServicePrice[];
 }
 export interface Settings {
   phone: string; whatsapp: string; email: string; address: string; hours: string;

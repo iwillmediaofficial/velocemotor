@@ -271,3 +271,13 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
 .vtype label:has(input:focus-visible){outline:2px solid var(--volt-400)}
 .vtype input{position:absolute;opacity:0}
 @media(max-width:640px){.vtype{grid-template-columns:1fr 1fr}}
+.svc-prices{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:4px}
+.svc-prices th,.svc-prices td{padding:.32rem 0;border-bottom:1px solid var(--graphite-700);text-align:left;font-weight:500}
+.svc-prices th{color:var(--steel-400)}
+.svc-prices td{text-align:right;color:#fff;font-weight:600}
+.svc-prices td.dur{color:var(--steel-400);font-weight:400;width:64px}
+.svc.light .svc-prices th,.svc.light .svc-prices td.dur{color:#5d636c}
+.svc.light .svc-prices td{color:#1a1d22}
+.svc.light .svc-prices th,.svc.light .svc-prices td{border-color:#e3e6ea}
+.svc-pick label.off{opacity:.45;cursor:not-allowed}
+.vtype{margin-bottom:18px}
