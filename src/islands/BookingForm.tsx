@@ -78,7 +78,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
   const field = (k: keyof typeof form) => ({
     id: `b-${k}`, name: k, class: 'input', value: form[k], 'aria-invalid': errors[k] ? true : undefined,
     'aria-describedby': errors[k] ? `b-${k}-err` : undefined,
-    onInput: (e: Event) => setForm({ ...form, [k]: (e.currentTarget as HTMLInputElement).value }),
+    onInput: (e: Event) => { const value = (e.currentTarget as HTMLInputElement).value; setForm((f) => ({ ...f, [k]: value })); },
   });
   const Err = ({ k }: { k: string }) => <span class="err-msg" id={`b-${k}-err`}>{errors[k] ?? ''}</span>;
 

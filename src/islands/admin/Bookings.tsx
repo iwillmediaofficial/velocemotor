@@ -33,7 +33,7 @@ export default function Bookings({ onChange }: { onChange: () => void }) {
   };
   useEffect(() => { const t = setTimeout(load, f.q ? 300 : 0); return () => clearTimeout(t); }, [f, page]);
 
-  const set = (patch: Partial<typeof f>) => { setPage(0); setF({ ...f, ...patch }); };
+  const set = (patch: Partial<typeof f>) => { setPage(0); setF((cur) => ({ ...cur, ...patch })); };
 
   return (
     <>

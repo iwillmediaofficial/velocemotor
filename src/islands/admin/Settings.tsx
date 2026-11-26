@@ -20,7 +20,7 @@ export default function SettingsPage({ onChange }: { onChange: () => void }) {
       .then((r) => { const d = must(r) as S; setS(d); setSlotsText(d.slots.join(', ')); setHolidaysText(d.holidays.join(', ')); });
   }, []);
   if (!s) return <Loading />;
-  const set = (p: Partial<S>) => setS({ ...s, ...p });
+  const set = (p: Partial<S>) => setS((cur) => (cur ? { ...cur, ...p } : cur));
 
   const save = async (e: Event) => {
     e.preventDefault();

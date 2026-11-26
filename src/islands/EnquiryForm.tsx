@@ -38,7 +38,7 @@ export default function EnquiryForm({ products }: Props) {
 
   const bind = (k: keyof typeof form) => ({
     id: `e-${k}`, name: k, class: 'input', value: form[k], 'aria-invalid': errors[k] ? true : undefined,
-    onInput: (e: Event) => setForm({ ...form, [k]: (e.currentTarget as HTMLInputElement).value }),
+    onInput: (e: Event) => { const value = (e.currentTarget as HTMLInputElement).value; setForm((f) => ({ ...f, [k]: value })); },
   });
   const Err = ({ k }: { k: string }) => <span class="err-msg">{errors[k] ?? ''}</span>;
 
@@ -49,7 +49,7 @@ export default function EnquiryForm({ products }: Props) {
       <div class="field"><label for="e-phone">Mobile *</label><input {...bind('phone')} inputMode="tel" autoComplete="tel" /><Err k="phone" /></div>
       <div class="field"><label for="e-email">Email</label><input {...bind('email')} type="email" autoComplete="email" /><Err k="email" /></div>
       <div class="field"><label for="e-product">Product (optional)</label>
-        <select {...bind('product')} onChange={(e) => setForm({ ...form, product: e.currentTarget.value })}>
+        <select {...bind('product')} onChange={(e) => { const value = e.currentTarget.value; setForm((f) => ({ ...f, product: value })); }}>
           <option value="">General enquiry</option>
           {products.map((p) => <option value={p.id}>{p.name}</option>)}
         </select><Err k="product" /></div>

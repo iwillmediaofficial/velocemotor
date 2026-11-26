@@ -105,7 +105,7 @@ function ProductEditor({ row, segments, vehicles, nextSort, onClose, onSaved }: 
   const [uploading, setUploading] = useState(0);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const set = (patch: Partial<typeof v>) => setV({ ...v, ...patch });
+  const set = (patch: Partial<typeof v>) => setV((cur) => ({ ...cur, ...patch }));
 
   const close = () => {
     // clean up photos uploaded in this editor session that were never saved
