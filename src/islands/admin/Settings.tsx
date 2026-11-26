@@ -35,7 +35,7 @@ export default function SettingsPage({ onChange }: { onChange: () => void }) {
       must(await sb().from('settings').update({
         ...s, whatsapp: s.whatsapp.replace(/\D/g, ''), slots: [...new Set(slots.map((x) => x.padStart(5, '0')))].sort(), holidays,
       }).eq('id', 1).select('id'));
-      toast('Settings saved. Booking rules apply right away; contact details update on the website automatically in a few minutes.');
+      toast('Settings saved');
       onChange();
     } catch (e2) { toast(errMsg(e2), 'bad'); } finally { setBusy(false); }
   };

@@ -72,4 +72,5 @@ npm run build && npm run dev:api   # full site + API on http://localhost:8788
 ## Quick local test (Windows)
 
 Double-click `run-local.cmd` (or run `npm run local`), then open http://localhost:8788.
+The local site rebuilds itself a few seconds after you save something in admin, the same way the live site does through the Cloudflare deploy hook.
 Bookings, enquiries and admin actions need `SUPABASE_SERVICE_ROLE_KEY` in `.dev.vars`.

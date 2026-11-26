@@ -40,7 +40,7 @@ export default function Products({ onChange }: { onChange: () => void }) {
     try {
       must(await sb().from('products').delete().eq('id', r.id).select('id'));
       await Promise.all(r.images.map((im) => deleteImage(im.id)));
-      toast('Product deleted. The website will update automatically.');
+      toast('Product deleted');
       await load(); onChange();
     } catch (e) { toast(errMsg(e), 'bad'); }
   };
@@ -82,7 +82,7 @@ export default function Products({ onChange }: { onChange: () => void }) {
         <ProductEditor
           row={editing === 'new' ? null : editing} segments={segments} vehicles={vehicles} nextSort={Math.max(0, ...rows.map((r) => r.sort)) + 1}
           onClose={() => setEditing(null)}
-          onSaved={async () => { setEditing(null); await load(); onChange(); toast('Saved. The website will update automatically.'); }}
+          onSaved={async () => { setEditing(null); await load(); onChange(); toast('Saved'); }}
         />
       )}
     </>

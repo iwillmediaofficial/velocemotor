@@ -1,6 +1,5 @@
 @echo off
-rem Builds the site and serves it together with the API on http://localhost:8788
+rem Local test server on http://localhost:8788 (site + API). Rebuilds automatically when admin content changes.
 set "PATH=C:\Program Files\nodejs;%PATH%"
 cd /d "%~dp0"
-call node_modules\.bin\astro.cmd build || exit /b 1
-call node_modules\.bin\wrangler.cmd pages dev dist --port 8788
+node scripts\local.mjs
