@@ -13,7 +13,8 @@
     "preview": "npm run build && wrangler pages dev dist --port 8788",
     "check": "astro check && tsc -p functions --noEmit",
     "deploy": "npm run build && wrangler pages deploy dist",
-    "deploy:keepalive": "wrangler deploy --config workers/keepalive/wrangler.toml"
+    "deploy:keepalive": "wrangler deploy --config workers/keepalive/wrangler.toml",
+    "local": "astro build && wrangler pages dev dist --port 8788"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.6",

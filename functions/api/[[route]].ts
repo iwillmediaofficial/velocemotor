@@ -36,6 +36,15 @@ function dbErrorResponse(e: unknown) {
 
 app.onError((err) => dbErrorResponse(err));
 
+// Clear setup error instead of a generic 500 when the server secret is missing (e.g. empty .dev.vars locally).
+app.use('*', async (c, next) => {
+  if (!c.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY is not set (.dev.vars locally, or a Cloudflare Pages secret)');
+    return c.json({ error: 'NOT_CONFIGURED', message: 'Server setup incomplete: SUPABASE_SERVICE_ROLE_KEY is missing. Add your Supabase secret key to .dev.vars and restart.' }, 503);
+  }
+  await next();
+});
+
 /* ------------------------------------------------------------------ public */
 
 // Availability for the booking calendar. Edge-cached for 60 s; create_booking re-checks capacity anyway.

@@ -67,3 +67,8 @@ npm run build && npm run dev:api   # full site + API on http://localhost:8788
 1. Add the domain `velocemotor.com` and create the 3 DNS records Resend shows (in Cloudflare DNS).
 2. Create an API key and set it as the `RESEND_API_KEY` secret.
 3. Customer emails come from `noreply@velocemotor.com`, and replies go to `velocemotor.com@gmail.com` (see `wrangler.toml`).
+
+## Quick local test (Windows)
+
+Double-click `run-local.cmd` (or run `npm run local`), then open http://localhost:8788.
+Bookings, enquiries and admin actions need `SUPABASE_SERVICE_ROLE_KEY` in `.dev.vars`.
