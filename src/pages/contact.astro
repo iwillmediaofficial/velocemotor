@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import EnquiryForm from '../islands/EnquiryForm';
+import { getCatalog } from '../lib/catalog';
+import { icons } from '../lib/icons';
+import { telHref, waLink } from '../lib/format';
+
+const { products, settings } = await getCatalog();
+const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Veloce Motor, Peechanikkad, Angamaly, Kerala 683572')}`;
+---
+<Base title="Contact Us" description="Contact Veloce Motor in Angamaly, Kerala: phone, WhatsApp, email, workshop hours and enquiry form." active="contact">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / Contact</nav>
+      <span class="eyebrow">Get in touch</span>
+      <h1>Contact Us</h1>
+      <p>Questions about fitment, pricing or dealership? We usually reply within a few hours.</p>
+    </div>
+  </div>
+  <section>
+    <div class="container two" style="align-items:start">
+      <div class="panel">
+        <h2 style="font-size:1.25rem;margin-bottom:18px">Send us a message</h2>
+        <EnquiryForm client:visible products={products.map((p) => ({ id: p.id, slug: p.slug, name: p.name }))} />
+      </div>
+      <div>
+        <div class="info-list">
+          <div><span class="ico" set:html={icons.pin} /><div><b>Workshop & Factory</b><p class="muted">{settings.address}</p><a href={mapUrl} target="_blank" rel="noopener" style="color:var(--volt-500);font-size:.9rem">Open in Google Maps →</a></div></div>
+          <div><span class="ico" set:html={icons.phone} /><div><b>Phone</b><p><a href={telHref(settings.phone)}>{settings.phone}</a></p></div></div>
+          <div><span class="ico" set:html={icons.mail} /><div><b>Email</b><p><a href={`mailto:${settings.email}`}>{settings.email}</a></p></div></div>
+          <div><span class="ico" set:html={icons.clock} /><div><b>Hours</b><p class="muted">{settings.hours}</p></div></div>
+        </div>
+        {settings.whatsapp && <a class="btn btn-wa" style="margin-top:24px;width:100%" target="_blank" rel="noopener" href={waLink(settings.whatsapp, 'Hi Veloce Motor!')}><Fragment set:html={icons.whatsapp} /> Chat on WhatsApp</a>}
+      </div>
+    </div>
+  </section>
+</Base>

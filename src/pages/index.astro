@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductCard from '../components/ProductCard.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import { getCatalog } from '../lib/catalog';
+import { bottle, pair, shock } from '../lib/art';
+import { icons } from '../lib/icons';
+import { waLink } from '../lib/format';
+
+const { segments, vehicles, products, services, settings } = await getCatalog();
+const featured = products.filter((p) => p.is_featured).slice(0, 4);
+const brands = [...new Set(vehicles.map((v) => v.brand))];
+const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pair('#C9CDD2'), scooter: shock('#3A3F47', '#1E6FE8'), care: bottle() };
+---
+<Base title="Veloce Motor — Precision Suspension Systems for Every Ride" active="home">
+  <section class="hero dark">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">Veloce Motor · Made in India</span>
+        <h1 style="margin-top:16px"><span class="chrome-text">Precision Engineering</span><br />for Every Ride.</h1>
+        <p class="lead">High-performance two-wheeler suspension systems built for durability, superior shock absorption and unmatched riding comfort, from smooth highways to the toughest Indian roads.</p>
+        <div class="ctas"><a class="btn btn-primary" href="/products">Find Your Suspension</a><a class="btn btn-ghost" href="/book">Book a Service</a></div>
+        <div class="trust">
+          <div><b>Built for India</b><span>Made for real road conditions</span></div>
+          <div><b>3 Segments</b><span>Cruiser · Commuter · Scooter & EV</span></div>
+          <div><b>Expert Fitting</b><span>Book online, ride out smoother</span></div>
+        </div>
+      </div>
+      <div class="hero-visual"><div class="ring"></div><Fragment set:html={shock('#1E6FE8', '#2A2E35', true)} /></div>
+    </div>
+  </section>
+
+  <div class="container finder">
+    <form class="finder-card" action="/products" method="get" id="finder">
+      <div><h2 style="font-size:1.1rem">Find parts for your bike</h2><p class="muted">Pick your brand and model to see compatible suspensions.</p></div>
+      <div class="field"><label for="f-brand">Brand</label>
+        <select id="f-brand" name="brand" class="input" required>
+          <option value="">Select brand</option>
+          {brands.map((b) => <option>{b}</option>)}
+        </select></div>
+      <div class="field"><label for="f-model">Model</label>
+        <select id="f-model" name="vehicle" class="input" disabled><option value="">All models</option></select></div>
+      <button class="btn btn-primary" type="submit">Show Parts</button>
+    </form>
+  </div>
+
+  <section>
+    <div class="container">
+      <div class="sec-head reveal"><div><span class="eyebrow">Product Range</span><h2>Engineered for every rider</h2></div><a class="btn btn-outline btn-sm" href="/products">View all products</a></div>
+      <div class="segments">
+        {segments.map((s) => (
+          <a class="seg reveal" href={`/products?seg=${s.id}`}><div class="art" set:html={segArt[s.id] ?? ''} /><h3>{s.name}</h3><p>{s.blurb}</p><span class="go">Explore →</span></a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section style="padding-top:0">
+      <div class="container">
+        <div class="sec-head reveal"><div><span class="eyebrow">Featured</span><h2>Best sellers</h2></div></div>
+        <div class="grid">{featured.map((p) => <ProductCard product={p} segments={segments} vehicles={vehicles} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <section class="dark">
+    <div class="container">
+      <div class="sec-head reveal"><div><span class="eyebrow">Why Veloce</span><h2 class="chrome-text">Built to take the hits</h2></div></div>
+      <div class="why reveal">
+        <div><span class="num">01</span><h3>Durability</h3><p>Hard-chromed shafts, monsoon-rated seals and corrosion-resistant finishes made for years of daily use.</p></div>
+        <div><span class="num">02</span><h3>Superior Absorption</h3><p>Progressive springs and precision damping turn potholes and speed breakers into a smooth glide.</p></div>
+        <div><span class="num">03</span><h3>Stability & Control</h3><p>Tuned per segment, from heavy cruisers to light scooters, for confident braking and cornering.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dark-2">
+    <div class="container">
+      <div class="sec-head reveal"><div><span class="eyebrow">Workshop Services</span><h2>Book in under a minute</h2></div><a class="btn btn-ghost btn-sm" href="/services">All services</a></div>
+      <div class="svc-grid">{services.map((s) => <ServiceCard service={s} />)}</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container two">
+      <div class="reveal">
+        <span class="eyebrow">Car & Bike Care</span>
+        <h2 style="margin:10px 0 14px">Premium care for every ride.</h2>
+        <p class="muted lead">Hydrophobic Car & Bike Wash Shampoo, a pH-neutral, high-foaming formula that lifts grime without stripping wax or ceramic coatings.</p>
+        <div class="ctas" style="margin-top:24px"><a class="btn btn-primary" href="/products?seg=care">Shop Care Range</a></div>
+      </div>
+      <div class="bottles reveal"><Fragment set:html={bottle('200ML')} /><Fragment set:html={bottle('500ML')} /></div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="cta-band reveal">
+        <div><h2>Ride smoother this week.</h2><p>Pick a slot, drop in, and ride out with fresh suspension.</p></div>
+        <div class="ctas">
+          <a class="btn btn-primary" href="/book">Book a Service</a>
+          {settings.whatsapp && <a class="btn btn-wa" href={waLink(settings.whatsapp, 'Hi Veloce Motor, I want to know more about your suspensions.')} target="_blank" rel="noopener"><Fragment set:html={icons.whatsapp} /> WhatsApp Us</a>}
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script is:inline define:vars={{ vehicles: vehicles.map((v) => ({ id: v.id, brand: v.brand, model: v.model })) }}>
+  const brand = document.getElementById('f-brand');
+  const model = document.getElementById('f-model');
+  brand.addEventListener('change', () => {
+    const list = vehicles.filter((v) => v.brand === brand.value);
+    model.replaceChildren(new Option('All models', ''), ...list.map((v) => new Option(v.model, v.id)));
+    model.disabled = !brand.value;
+  });
+  // Drop the brand param when a specific model is chosen (cleaner URL)
+  document.getElementById('finder').addEventListener('submit', () => { if (model.value) brand.disabled = true; });
+</script>

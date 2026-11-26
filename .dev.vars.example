@@ -1,0 +1,7 @@
+# Secrets for local Pages Functions (`npm run dev:api`). Copy to .dev.vars — never commit .dev.vars.
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
+# Cloudflare's always-pass Turnstile test secret
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+# Leave empty to skip sending emails locally (they are logged instead)
+RESEND_API_KEY=
+PAGES_DEPLOY_HOOK=

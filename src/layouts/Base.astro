@@ -1,0 +1,113 @@
+---
+import '../styles/global.css';
+import { getCatalog } from '../lib/catalog';
+import { icons } from '../lib/icons';
+import { telHref, waLink } from '../lib/format';
+
+interface Props {
+  title: string;
+  description?: string;
+  active?: 'home' | 'products' | 'services' | 'about' | 'contact' | 'book';
+  image?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+}
+const { title, description = 'Veloce Motor manufactures high-performance two-wheeler suspension systems in Angamaly, Kerala, built for durability, comfort and Indian roads.', active, image = '/assets/veloce-logo.webp', jsonLd, noindex = false } = Astro.props;
+
+const { settings, segments } = await getCatalog();
+const fullTitle = title.includes('Veloce') ? title : `${title} · Veloce Motor`;
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', Astro.site);
+const ogImage = new URL(image, Astro.site);
+
+const business = {
+  '@context': 'https://schema.org',
+  '@type': 'AutoPartsStore',
+  name: 'Veloce Motor',
+  url: Astro.site?.toString(),
+  logo: new URL('/assets/veloce-logo.webp', Astro.site).toString(),
+  telephone: settings.phone,
+  email: settings.email,
+  address: { '@type': 'PostalAddress', streetAddress: 'Peechanikkad', addressLocality: 'Angamaly', addressRegion: 'Kerala', postalCode: '683572', addressCountry: 'IN' },
+  openingHours: 'Mo-Sa 09:00-18:00',
+};
+const ld = [business, ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])];
+
+const nav = [
+  { href: '/', label: 'Home', key: 'home' },
+  { href: '/products', label: 'Products', key: 'products' },
+  { href: '/services', label: 'Services', key: 'services' },
+  { href: '/about', label: 'About', key: 'about' },
+  { href: '/contact', label: 'Contact', key: 'contact' },
+];
+---
+<!doctype html>
+<html lang="en-IN" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+  <meta name="theme-color" content="#0A0B0D" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Veloce Motor" />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={ogImage} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <script is:inline>document.documentElement.classList.remove('no-js')</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/" aria-label="Veloce Motor home"><img src="/assets/veloce-logo.webp" alt="Veloce" width="54" height="42" /></a>
+      <nav class="nav-links" id="nav-links" aria-label="Main">
+        {nav.map((n) => <a href={n.href} aria-current={active === n.key ? 'page' : undefined}>{n.label}</a>)}
+        <a href="/book" class="m-only">Book a Service →</a>
+      </nav>
+      <div class="nav-cta"><a class="btn btn-primary btn-sm" href="/book">Book a Service</a></div>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links" id="menu-btn" set:html={icons.menu} />
+    </div>
+  </header>
+
+  <main id="main"><slot /></main>
+
+  <footer>
+    <div class="container">
+      <div class="foot">
+        <div><img src="/assets/veloce-logo.webp" alt="Veloce" width="83" height="64" loading="lazy" /><p>Precision-engineered two-wheeler suspension systems, built for Indian roads.</p></div>
+        <div><h2>Explore</h2><a href="/products">Products</a><a href="/services">Services</a><a href="/book">Book a Service</a><a href="/about">About Us</a><a href="/contact">Contact</a></div>
+        <div><h2>Products</h2>{segments.map((s) => <a href={`/products?seg=${s.id}`}>{s.name}</a>)}</div>
+        <div><h2>Contact</h2><p>{settings.address}</p><a href={telHref(settings.phone)}>{settings.phone}</a><a href={`mailto:${settings.email}`}>{settings.email}</a><p>{settings.hours}</p></div>
+      </div>
+      <div class="copy"><span>© {new Date().getFullYear()} Veloce Motor. All rights reserved.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span></div>
+    </div>
+  </footer>
+
+  {settings.whatsapp && (
+    <a class="wa-float" href={waLink(settings.whatsapp, 'Hi Veloce Motor, I have an enquiry.')} target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp" set:html={icons.whatsapp} />
+  )}
+
+  <script>
+    const btn = document.getElementById('menu-btn');
+    const links = document.getElementById('nav-links');
+    btn?.addEventListener('click', () => {
+      const open = links!.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }),
+      { rootMargin: '0px 0px -40px 0px' },
+    );
+    const watch = () => document.querySelectorAll('.reveal:not(.in)').forEach((el) => io.observe(el));
+    watch();
+    // islands render cards after hydration
+    new MutationObserver(watch).observe(document.body, { childList: true, subtree: true });
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductBrowser from '../../islands/ProductBrowser';
+import { getCatalog, toLite } from '../../lib/catalog';
+
+const { segments, vehicles, products, settings } = await getCatalog();
+---
+<Base title="Suspension & Care Products" description="Browse Veloce Motor shock absorbers and front forks for Royal Enfield, KTM, Yamaha, Hero, Honda, Bajaj, Activa and EV scooters, plus car & bike care products." active="products">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / Products</nav>
+      <span class="eyebrow">Catalogue</span>
+      <h1>Suspension & Care Products</h1>
+      <p>Filter by segment or your exact bike model. All prices are MRP, inclusive of taxes.</p>
+    </div>
+  </div>
+  <ProductBrowser client:load products={products.map(toLite)} segments={segments} vehicles={vehicles} whatsapp={settings.whatsapp} />
+</Base>

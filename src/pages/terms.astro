@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCatalog } from '../lib/catalog';
+const { settings } = await getCatalog();
+---
+<Base title="Terms of Use" description="Terms for using the Veloce Motor website and online booking.">
+  <div class="page-hero"><div class="container"><h1>Terms of Use</h1><p>DRAFT — to be reviewed and approved by Veloce Motor before launch.</p></div></div>
+  <section>
+    <div class="container prose">
+      <h2>Prices</h2>
+      <p>Prices shown are MRP in Indian Rupees and include all taxes. Service prices are starting prices; the final cost depends on your vehicle's condition and is confirmed at the workshop.</p>
+      <h2>Bookings</h2>
+      <p>An online booking is a request for a slot. It is confirmed when our team confirms it by email or phone. Payment is made at the workshop. To change or cancel a booking, contact us on {settings.phone}.</p>
+      <h2>Product information</h2>
+      <p>We make every effort to keep product details and compatibility accurate. Please confirm fitment with our team before purchase.</p>
+    </div>
+  </section>
+</Base>

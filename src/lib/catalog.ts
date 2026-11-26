@@ -1,0 +1,48 @@
+// BUILD-TIME ONLY. Reads the catalogue from Supabase once per build (5 small queries),
+// so visitors never hit the database while browsing.
+import type { Catalog, Product, ProductLite, Segment, Service, Settings, Vehicle } from './types';
+
+const URL = import.meta.env.PUBLIC_SUPABASE_URL;
+const KEY = import.meta.env.PUBLIC_SUPABASE_KEY;
+
+async function get<T>(path: string): Promise<T> {
+  if (!URL || !KEY) throw new Error('PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_KEY are not set (see .env.example)');
+  const res = await fetch(`${URL}/rest/v1/${path}`, { headers: { apikey: KEY, Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`Supabase ${res.status} on ${path}: ${await res.text()}`);
+  return res.json() as Promise<T>;
+}
+
+let cached: Promise<Catalog> | undefined;
+
+export function getCatalog(): Promise<Catalog> {
+  cached ??= (async () => {
+    const [segments, vehicles, rawProducts, services, settings] = await Promise.all([
+      get<Segment[]>('segments?select=id,name,blurb,sort&order=sort'),
+      get<Vehicle[]>('vehicles?select=id,brand,model,segment_id,sort&order=sort,brand,model'),
+      get<(Omit<Product, 'fits'> & { product_fitment: { vehicle_id: string }[] })[]>(
+        'products?select=id,slug,name,segment_id,position,short_desc,description,specs,price,mrp,images,is_featured,sort,product_fitment(vehicle_id)&is_active=eq.true&order=sort,name',
+      ),
+      get<Service[]>('services?select=id,name,description,price_from,duration_min,is_bookable,sort&is_active=eq.true&order=sort'),
+      get<Settings[]>('settings?select=phone,whatsapp,email,address,hours&id=eq.1'),
+    ]);
+    const products: Product[] = rawProducts.map(({ product_fitment, ...p }) => ({
+      ...p,
+      price: Number(p.price),
+      mrp: Number(p.mrp),
+      fits: product_fitment.map((f) => f.vehicle_id),
+    }));
+    return {
+      segments,
+      vehicles,
+      products,
+      services: services.map((s) => ({ ...s, price_from: Number(s.price_from) })),
+      settings: settings[0] ?? { phone: '', whatsapp: '', email: '', address: '', hours: '' },
+    };
+  })();
+  return cached;
+}
+
+export const toLite = (p: Product): ProductLite => ({
+  slug: p.slug, name: p.name, seg: p.segment_id, pos: p.position, price: p.price, mrp: p.mrp,
+  short: p.short_desc, fits: p.fits, featured: p.is_featured, sort: p.sort, img: p.images[0] ?? null,
+});

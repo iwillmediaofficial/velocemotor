@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import BookingForm from '../islands/BookingForm';
+import { getCatalog } from '../lib/catalog';
+
+const { services, products, vehicles, settings } = await getCatalog();
+---
+<Base title="Book a Service" description="Book suspension fitting, servicing, inspection or washing at Veloce Motor, Angamaly. Choose a time slot online and pay at the workshop." active="book">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / Book a Service</nav>
+      <span class="eyebrow">Online Booking</span>
+      <h1>Book a Service</h1>
+      <p>Three quick steps. You'll get a booking reference and a confirmation email.</p>
+    </div>
+  </div>
+  <BookingForm
+    client:load
+    services={services.filter((s) => s.is_bookable)}
+    products={products.filter((p) => p.segment_id !== 'care').map((p) => ({ id: p.id, slug: p.slug, name: p.name }))}
+    vehicles={vehicles.map((v) => `${v.brand} ${v.model}`)}
+    whatsapp={settings.whatsapp}
+  />
+</Base>

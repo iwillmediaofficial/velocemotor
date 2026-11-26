@@ -1,0 +1,30 @@
+---
+import type { Product, Segment, Vehicle } from '../lib/types';
+import { productArt } from '../lib/art';
+import { discount, inr } from '../lib/format';
+import { imgUrl, srcset } from '../lib/media';
+
+interface Props { product: Product; segments: Segment[]; vehicles: Vehicle[] }
+const { product: p, segments, vehicles } = Astro.props;
+const seg = segments.find((s) => s.id === p.segment_id)?.name ?? '';
+const vName = (id: string) => { const v = vehicles.find((x) => x.id === id); return v ? `${v.brand} ${v.model}` : id; };
+const fits = p.fits.slice(0, 2).map(vName).join(', ') + (p.fits.length > 2 ? ` +${p.fits.length - 2}` : '');
+const img = p.images[0];
+const off = discount(p.price, p.mrp);
+---
+<a class="card reveal" href={`/products/${p.slug}`}>
+  <div class="media">
+    {p.position && <span class="badge">{p.position}</span>}
+    {img ? (
+      <img src={imgUrl(img, 480)} srcset={srcset(img)} sizes="(max-width: 600px) 100vw, 300px" alt={img.alt || p.name} width={img.w} height={img.h} loading="lazy" decoding="async" />
+    ) : (
+      <Fragment><span class="badge sample">Sample image</span><Fragment set:html={productArt({ slug: p.slug, name: p.name, seg: p.segment_id, pos: p.position })} /></Fragment>
+    )}
+  </div>
+  <div class="body">
+    <span class="seg-name">{seg}</span>
+    <h3>{p.name}</h3>
+    <span class="fits">{p.fits.length ? `Fits: ${fits}` : p.short_desc}</span>
+    <div class="price"><b>{inr(p.price)}</b>{off > 0 && <Fragment><s>{inr(p.mrp)}</s><span class="off">{off}% off</span></Fragment>}</div>
+  </div>
+</a>

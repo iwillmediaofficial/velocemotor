@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import { getCatalog } from '../lib/catalog';
+import { inr } from '../lib/format';
+
+const { services } = await getCatalog();
+const inspection = services.find((s) => s.id === 'inspection');
+---
+<Base title="Services & Pricing" description="Suspension fitting, servicing, inspection and bike washing at the Veloce Motor workshop in Angamaly. Book a slot online and pay at the workshop." active="services">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / Services</nav>
+      <span class="eyebrow">Workshop</span>
+      <h1>Services & Pricing</h1>
+      <p>Expert suspension work by the people who make it. Book a slot online and pay at the workshop.</p>
+    </div>
+  </div>
+  <section>
+    <div class="container">
+      <div class="svc-grid">{services.map((s) => <ServiceCard service={s} light />)}</div>
+      {inspection && (
+        <div class="cta-band" style="margin-top:48px">
+          <div><h2>Not sure what your bike needs?</h2><p>Book an inspection for {inr(inspection.price_from)} and get an honest recommendation.</p></div>
+          <a class="btn btn-primary" href="/book?service=inspection">Book Inspection</a>
+        </div>
+      )}
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,20 @@
+---
+// Admin dashboard: client-rendered only, never indexed, talks to Supabase (RLS) and /api/admin/*.
+import '../../styles/global.css';
+import '../../styles/admin.css';
+import AdminApp from '../../islands/admin/App';
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin · Veloce Motor</title>
+  <link rel="icon" href="/favicon.png" type="image/png" />
+</head>
+<body>
+  <AdminApp client:only="preact" />
+  <noscript>The admin dashboard needs JavaScript.</noscript>
+</body>
+</html>

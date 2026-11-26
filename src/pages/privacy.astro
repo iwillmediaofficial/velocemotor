@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCatalog } from '../lib/catalog';
+const { settings } = await getCatalog();
+---
+<Base title="Privacy Policy" description="How Veloce Motor collects and uses information submitted through this website.">
+  <div class="page-hero"><div class="container"><h1>Privacy Policy</h1><p>DRAFT — to be reviewed and approved by Veloce Motor before launch.</p></div></div>
+  <section>
+    <div class="container prose">
+      <h2>What we collect</h2>
+      <p>When you book a service or send an enquiry, we collect the details you enter: your name, mobile number, email address, vehicle and message.</p>
+      <h2>How we use it</h2>
+      <p>We use these details only to respond to your enquiry, manage your booking, and send you booking confirmations and updates. We do not sell or share your information with third parties for marketing.</p>
+      <h2>Service providers</h2>
+      <ul>
+        <li>Supabase stores booking and enquiry records.</li>
+        <li>Cloudflare hosts the website and protects forms from spam using Turnstile.</li>
+        <li>Resend delivers our booking emails.</li>
+      </ul>
+      <h2>Your choices</h2>
+      <p>To update or delete your information, contact us at <a href={`mailto:${settings.email}`}>{settings.email}</a> or {settings.phone}.</p>
+    </div>
+  </section>
+</Base>

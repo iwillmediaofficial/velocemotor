@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getCatalog } from '../../lib/catalog';
+import { productArt } from '../../lib/art';
+import { discount, inr, waLink } from '../../lib/format';
+import { imgUrl, srcset } from '../../lib/media';
+import { icons } from '../../lib/icons';
+
+export async function getStaticPaths() {
+  const { products } = await getCatalog();
+  return products.map((p) => ({ params: { slug: p.slug }, props: { id: p.id } }));
+}
+
+const { segments, vehicles, products, settings } = await getCatalog();
+const p = products.find((x) => x.id === Astro.props.id)!;
+const seg = segments.find((s) => s.id === p.segment_id);
+const off = discount(p.price, p.mrp);
+const related = products.filter((x) => x.segment_id === p.segment_id && x.id !== p.id).slice(0, 3);
+const fitVehicles = p.fits.map((id) => vehicles.find((v) => v.id === id)).filter(Boolean) as typeof vehicles;
+const canonical = new URL(`/products/${p.slug}`, Astro.site).toString();
+
+const productLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: p.name,
+  description: p.short_desc || p.description,
+  brand: { '@type': 'Brand', name: 'Veloce' },
+  category: seg?.name,
+  ...(p.images[0] ? { image: new URL(imgUrl(p.images[0], 1600), Astro.site).toString() } : {}),
+  offers: { '@type': 'Offer', priceCurrency: 'INR', price: p.price, availability: 'https://schema.org/InStock', url: canonical },
+};
+const crumbsLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Products', item: new URL('/products', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: p.name, item: canonical },
+  ],
+};
+---
+<Base title={p.name} description={p.short_desc} active="products" jsonLd={[productLd, crumbsLd]} image={p.images[0] ? imgUrl(p.images[0], 1600) : undefined}>
+  <div class="container">
+    <div class="pd">
+      <div>
+        <div class="media pd-main" id="pd-main">
+          {p.images[0] ? (
+            <img src={imgUrl(p.images[0], 960)} srcset={srcset(p.images[0])} sizes="(max-width: 900px) 100vw, 560px" alt={p.images[0].alt || p.name} width={p.images[0].w} height={p.images[0].h} fetchpriority="high" />
+          ) : (
+            <Fragment><span class="badge sample">Sample image</span><Fragment set:html={productArt({ slug: p.slug, name: p.name, seg: p.segment_id, pos: p.position })} /></Fragment>
+          )}
+        </div>
+        {p.images.length > 1 && (
+          <div class="thumbs" id="thumbs">
+            {p.images.map((im, i) => (
+              <button type="button" aria-current={i === 0 ? 'true' : 'false'} aria-label={`Show image ${i + 1}`} data-src={imgUrl(im, 960)} data-srcset={srcset(im)} data-alt={im.alt || p.name}>
+                <img src={imgUrl(im, 480)} alt="" width="74" height="74" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="pd-info">
+        <nav class="crumbs" style="color:#5d636c" aria-label="Breadcrumb"><a href="/">Home</a> / <a href={`/products?seg=${p.segment_id}`}>{seg?.name}</a></nav>
+        <span class="eyebrow">{seg?.name}{p.position ? ` · ${p.position}` : ''}</span>
+        <h1>{p.name}</h1>
+        <p class="muted lead">{p.short_desc}</p>
+        <div class="price"><b>{inr(p.price)}</b>{off > 0 && <Fragment><s>MRP {inr(p.mrp)}</s><span class="off">{off}% off</span></Fragment>}</div>
+        <small class="muted">Inclusive of all taxes</small>
+
+        <div class="pd-actions">
+          {settings.whatsapp && <a class="btn btn-wa" target="_blank" rel="noopener" href={waLink(settings.whatsapp, `Hi Veloce Motor, I'm interested in ${p.name} (${inr(p.price)}). Is it available?`)}><Fragment set:html={icons.whatsapp} /> Enquire on WhatsApp</a>}
+          {p.segment_id !== 'care' && <a class="btn btn-primary" href={`/book?service=fitting&product=${p.slug}`}>Book Fitting</a>}
+          <a class="btn btn-outline" href={`/contact?product=${p.slug}`}>Send Enquiry</a>
+        </div>
+
+        {fitVehicles.length > 0 && (
+          <Fragment>
+            <h2 class="label-sm">Compatible with</h2>
+            <div class="fit-list">{fitVehicles.map((v) => <a href={`/products?vehicle=${v.id}`}>{v.brand} {v.model}</a>)}</div>
+          </Fragment>
+        )}
+
+        {p.description && <p style="margin-top:22px">{p.description}</p>}
+        {p.specs.length > 0 && (
+          <table class="spec">
+            <caption class="sr-only">Specifications</caption>
+            <tbody>{p.specs.map((s) => <tr><th scope="row">{s.label}</th><td>{s.value}</td></tr>)}</tbody>
+          </table>
+        )}
+      </div>
+    </div>
+
+    {related.length > 0 && (
+      <div style="padding-bottom:80px">
+        <div class="sec-head"><div><span class="eyebrow">You may also like</span><h2>Related products</h2></div></div>
+        <div class="grid">{related.map((r) => <ProductCard product={r} segments={segments} vehicles={vehicles} />)}</div>
+      </div>
+    )}
+  </div>
+</Base>
+
+<script>
+  const main = document.querySelector<HTMLImageElement>('#pd-main img');
+  document.querySelectorAll<HTMLButtonElement>('#thumbs button').forEach((b, _, all) => {
+    b.addEventListener('click', () => {
+      if (!main) return;
+      main.src = b.dataset.src!; main.srcset = b.dataset.srcset!; main.alt = b.dataset.alt!;
+      all.forEach((x) => x.setAttribute('aria-current', String(x === b)));
+    });
+  });
+</script>

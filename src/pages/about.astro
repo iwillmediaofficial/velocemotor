@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import { fork, shock } from '../lib/art';
+---
+<Base title="About Us" description="Veloce Motor manufactures high-performance two-wheeler suspension systems in Angamaly, Kerala, for cruisers, commuters, scooters and EVs." active="about">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / About</nav>
+      <span class="eyebrow">About Veloce Motor</span>
+      <h1><span class="chrome-text">Precision Engineering</span> for Every Ride.</h1>
+    </div>
+  </div>
+  <section>
+    <div class="container two">
+      <div class="reveal">
+        <span class="eyebrow">Who we are</span>
+        <h2 style="margin:10px 0 16px">Made in Angamaly. Built for Indian roads.</h2>
+        <p class="lead muted">At Veloce Motor, we specialize in manufacturing high-performance two-wheeler suspension systems designed for durability, superior shock absorption, and unmatched riding comfort.</p>
+        <p class="muted" style="margin-top:14px">Built to handle everything from smooth highways to the toughest Indian road conditions, our suspensions deliver stability and control across a wide range of motorcycles and scooters.</p>
+      </div>
+      <div class="reveal" style="background:radial-gradient(60% 60% at 50% 40%,#262b33,var(--carbon-950));border-radius:var(--r-lg);height:420px;display:flex;align-items:center;justify-content:center;gap:20px;padding:30px">
+        <Fragment set:html={fork()} /><Fragment set:html={shock('#1E6FE8', '#2A2E35', true)} />
+      </div>
+    </div>
+  </section>
+  <section class="dark">
+    <div class="container">
+      <span class="eyebrow">Our product range</span>
+      <h2 class="chrome-text" style="margin:10px 0">Three segments. One standard.</h2>
+      <div class="why" style="margin-top:28px">
+        <div><span class="num">CRUISER & PERFORMANCE</span><h3>Royal Enfield · KTM · Yamaha</h3><p>Engineered for stability and heavy-duty endurance on the Royal Enfield Bullet & Classic, KTM, and Yamaha FZ & R15.</p></div>
+        <div><span class="num">COMMUTER</span><h3>Splendor · Shine · Platina · CT 100</h3><p>Built for daily reliability, load-bearing strength, and smooth mileage comfort.</p></div>
+        <div><span class="num">SCOOTERS & EV</span><h3>Activa · Entry-level EVs</h3><p>Precision-tuned front and rear suspensions for a bump-free urban commute.</p></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+      <div class="cta-band"><div><h2>Find the right suspension for your bike.</h2><p>Browse by model or talk to our team.</p></div><div class="ctas"><a class="btn btn-primary" href="/products">Browse Products</a><a class="btn btn-ghost" href="/contact">Contact Us</a></div></div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,22 @@
+# Cloudflare Pages project: static site (dist/) + Pages Functions (functions/) for /api/*
+name = "velocemotor"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+
+[vars]
+SUPABASE_URL = "https://ezynivufmaeftqymvawu.supabase.co"
+SITE_URL = "https://velocemotor.com"
+MAIL_FROM = "Veloce Motor <noreply@velocemotor.com>"
+REPLY_TO = "velocemotor.com@gmail.com"
+ADMIN_EMAIL = "velocemotor.com@gmail.com"
+
+# Product images. Public reads go through the bucket's custom domain (PUBLIC_MEDIA_URL), not this Function.
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "velocemotor-media"
+
+# Secrets — set with `wrangler pages secret put <NAME>` (or in the dashboard), and in .dev.vars locally:
+#   SUPABASE_SERVICE_ROLE_KEY   Supabase secret key (sb_secret_… or legacy service_role JWT)
+#   TURNSTILE_SECRET            Cloudflare Turnstile secret key
+#   RESEND_API_KEY              Resend API key (emails are skipped if unset)
+#   PAGES_DEPLOY_HOOK           Cloudflare Pages deploy hook URL (Publish button)

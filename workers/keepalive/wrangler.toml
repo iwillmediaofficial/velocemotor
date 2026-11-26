@@ -1,0 +1,12 @@
+name = "velocemotor-keepalive"
+main = "index.ts"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+[triggers]
+crons = ["30 3 * * *"] # 09:00 IST daily
+
+[vars]
+SUPABASE_URL = "https://ezynivufmaeftqymvawu.supabase.co"
+# Publishable (public) key — safe to commit.
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_fUXReHRo475uwYU25I00vA_L0nNGknA"
