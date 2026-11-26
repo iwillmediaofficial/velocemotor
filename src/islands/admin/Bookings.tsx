@@ -2,10 +2,10 @@ import { useEffect, useState } from 'preact/hooks';
 import { adminApi, ago, errMsg, must, sb, todayIST } from './lib';
 import { Empty, Loading, Modal, Status, useToast } from './ui';
 import { fmtDate, fmtTime } from '../../lib/format';
-import { BOOKING_STATUSES } from '../../lib/schemas';
+import { BOOKING_STATUSES, vehicleTypeLabel } from '../../lib/schemas';
 
 export interface BookingListRow {
-  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string;
+  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null;
   booking_date: string; slot: string; status: string; notes: string | null; admin_note: string | null; created_at: string;
   service_id: string; services: { name: string } | null; products: { name: string } | null;
 }
@@ -14,7 +14,7 @@ export interface BookingListRow {
 const BLOCKING = ['confirmed', 'rescheduled', 'completed'];
 const isBlocking = (s: string) => BLOCKING.includes(s);
 
-const COLS = 'id,ref,name,phone,email,vehicle,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
+const COLS = 'id,ref,name,phone,email,vehicle,vehicle_type,booking_date,slot,status,notes,admin_note,created_at,service_id,services(name),products(name)';
 const PAGE = 25;
 
 /* ---------- slot queue (who asked first for each date + time) ---------- */
@@ -125,7 +125,7 @@ export function BookingTable({ rows, onChanged }: { rows: BookingListRow[]; onCh
             {rows.map((b) => (
               <tr class="click" tabIndex={0} onClick={() => setOpenId(b.id)} onKeyDown={(e) => e.key === 'Enter' && setOpenId(b.id)}>
                 <td><b>{b.ref}</b></td>
-                <td>{b.name}<br /><small class="muted">{b.phone} · {b.vehicle}</small></td>
+                <td>{b.name}<br /><small class="muted">{b.phone} · {[vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(': ')}</small></td>
                 <td>{b.services?.name ?? b.service_id}</td>
                 <td>{fmtDate(b.booking_date)}<br /><small class="muted">{fmtTime(b.slot)}</small></td>
                 <td><QueueCell b={b} info={queue[key(b.booking_date, b.slot)]} /></td>
@@ -201,7 +201,7 @@ function BookingModal({ id, onOpen, onClose, onSaved }: { id: string; onOpen: (i
         <dt>Customer</dt><dd>{b.name}</dd>
         <dt>Phone</dt><dd><a href={`tel:+91${phone10}`}>{b.phone}</a> · <a target="_blank" rel="noopener" style="color:var(--wa)" href={`https://wa.me/91${phone10}`}>WhatsApp</a></dd>
         <dt>Email</dt><dd>{b.email ? <a href={`mailto:${b.email}`}>{b.email}</a> : '—'}</dd>
-        <dt>Vehicle</dt><dd>{b.vehicle}</dd>
+        <dt>Vehicle</dt><dd>{b.vehicle_type && <span class="st confirmed" style="margin-right:6px">{vehicleTypeLabel(b.vehicle_type)}</span>}{b.vehicle}</dd>
         {b.products && <><dt>Product</dt><dd>{b.products.name}</dd></>}
         <dt>Customer notes</dt><dd style="white-space:pre-wrap">{b.notes || '—'}</dd>
       </dl>

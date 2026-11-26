@@ -19,6 +19,7 @@ const MESSAGES: Record<string, [number, string]> = {
   INVALID_SLOT: [400, 'That time slot is not available. Please pick another.'],
   DATE_OUT_OF_RANGE: [400, 'Please pick a date within the booking window.'],
   INVALID_SERVICE: [400, 'That service is not available for online booking.'],
+  INVALID_VEHICLE_TYPE: [400, 'Please choose your vehicle type.'],
   NOT_FOUND: [404, 'Booking not found.'],
 };
 
@@ -79,7 +80,7 @@ app.post('/booking', async (c) => {
 
   const b = await rpc<BookingRow>(c.env, 'create_booking', {
     p_service: d.service, p_product: d.product ?? null, p_name: d.name, p_phone: d.phone, p_email: d.email,
-    p_vehicle: d.vehicle, p_date: d.date, p_slot: d.slot, p_notes: d.notes,
+    p_vehicle: d.vehicle, p_date: d.date, p_slot: d.slot, p_notes: d.notes, p_vehicle_type: d.vehicle_type,
   });
 
   // invalidate cached availability so the next visitor sees the slot count drop

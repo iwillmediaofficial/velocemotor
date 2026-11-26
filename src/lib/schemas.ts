@@ -20,12 +20,22 @@ const optEmail = z
   .optional()
   .default('');
 
+export const VEHICLE_TYPES = {
+  bike: 'Bike / Motorcycle',
+  scooter: 'Scooter',
+  ev: 'Electric Scooter',
+  car: 'Car',
+} as const;
+export type VehicleType = keyof typeof VEHICLE_TYPES;
+export const vehicleTypeLabel = (t: string | null | undefined) => (t && t in VEHICLE_TYPES ? VEHICLE_TYPES[t as VehicleType] : '');
+
 export const bookingSchema = z.object({
   service: z.string().regex(/^[a-z0-9-]+$/, 'Choose a service'),
   product: z.uuid().optional().nullable(),
   name: z.string().trim().min(2, 'Please enter your name').max(100),
   phone,
   email: z.string().trim().max(254).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid email'),
+  vehicle_type: z.enum(['bike', 'scooter', 'ev', 'car'], { error: 'Choose your vehicle type' }),
   vehicle: z.string().trim().min(2, 'Tell us your vehicle').max(120),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date'),
   slot: z.string().regex(/^\d{2}:\d{2}$/, 'Pick a time'),

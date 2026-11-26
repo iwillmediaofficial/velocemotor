@@ -1,5 +1,6 @@
 // Transactional email via Resend's HTTP API. Failures are logged, never shown to the customer.
 import type { Env } from './env';
+import { vehicleTypeLabel } from '../../src/lib/schemas';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -34,12 +35,12 @@ const row = (k: string, v: unknown) =>
   `<tr><td style="padding:6px 12px 6px 0;color:#5d636c;font-size:14px;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0;font-size:14px"><b>${esc(v)}</b></td></tr>`;
 
 export interface BookingRow {
-  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string;
+  id: string; ref: string; name: string; phone: string; email: string | null; vehicle: string; vehicle_type: string | null;
   booking_date: string; slot: string; notes: string | null; status: string; service_id: string;
 }
 
 export function bookingDetails(b: BookingRow, serviceName: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0">${row('Reference', b.ref)}${row('Service', serviceName)}${row('Date', fmtDate(b.booking_date))}${row('Time', fmtTime(b.slot))}${row('Vehicle', b.vehicle)}</table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0">${row('Reference', b.ref)}${row('Service', serviceName)}${row('Date', fmtDate(b.booking_date))}${row('Time', fmtTime(b.slot))}${row('Vehicle', [vehicleTypeLabel(b.vehicle_type), b.vehicle].filter(Boolean).join(' · '))}</table>`;
 }
 
 export function customerBookingEmail(env: Env, b: BookingRow, serviceName: string) {

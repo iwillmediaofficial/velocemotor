@@ -265,3 +265,9 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
 .reveal.in{opacity:1;transform:none}
 .no-js .reveal{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+.vtype{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.vtype label{border:1px solid #d4d8dd;border-radius:var(--r-md);padding:12px 10px;text-align:center;font-weight:600;font-size:.9rem;cursor:pointer;position:relative;background:#fff}
+.vtype label.on{border-color:var(--volt-500);background:rgba(30,111,232,.08);color:var(--volt-600)}
+.vtype label:has(input:focus-visible){outline:2px solid var(--volt-400)}
+.vtype input{position:absolute;opacity:0}
+@media(max-width:640px){.vtype{grid-template-columns:1fr 1fr}}

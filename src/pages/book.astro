@@ -18,7 +18,7 @@ const { services, products, vehicles, settings } = await getCatalog();
     client:load
     services={services.filter((s) => s.is_bookable)}
     products={products.filter((p) => p.segment_id !== 'care').map((p) => ({ id: p.id, slug: p.slug, name: p.name }))}
-    vehicles={vehicles.map((v) => `${v.brand} ${v.model}`)}
+    vehicles={vehicles.map((v) => ({ label: `${v.brand} ${v.model}`, seg: v.segment_id }))}
     whatsapp={settings.whatsapp}
   />
 </Base>

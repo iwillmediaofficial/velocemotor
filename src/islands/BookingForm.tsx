@@ -1,7 +1,7 @@
 // 3-step booking: service → date & slot → details. One GET /api/slots, one POST /api/booking.
 import { useEffect, useState } from 'preact/hooks';
 import type { Service } from '../lib/types';
-import { bookingSchema, fieldErrors } from '../lib/schemas';
+import { bookingSchema, fieldErrors, VEHICLE_TYPES, type VehicleType } from '../lib/schemas';
 import { api, type ApiError } from '../lib/api';
 import { fmtDate, fmtTime, inr, waLink } from '../lib/format';
 import { icons } from '../lib/icons';
@@ -9,7 +9,13 @@ import Turnstile from './Turnstile';
 
 interface SlotInfo { slot: string; remaining: number; available: boolean; reason: 'closed' | 'past' | 'full' | null }
 interface Day { date: string; slots: SlotInfo[] }
-interface Props { services: Service[]; products: { id: string; slug: string; name: string }[]; vehicles: string[]; whatsapp: string }
+interface Props { services: Service[]; products: { id: string; slug: string; name: string }[]; vehicles: { label: string; seg: string | null }[]; whatsapp: string }
+
+// which catalogue segments to suggest models from for each vehicle type
+const TYPE_SEGMENTS: Record<VehicleType, string[]> = { bike: ['cruiser', 'commuter'], scooter: ['scooter'], ev: ['scooter'], car: [] };
+const TYPE_PLACEHOLDER: Record<VehicleType, string> = {
+  bike: 'e.g. Royal Enfield Classic 350', scooter: 'e.g. Honda Activa 6G', ev: 'e.g. Ather 450X', car: 'e.g. Maruti Swift',
+};
 
 export default function BookingForm({ services, products, vehicles, whatsapp }: Props) {
   const [step, setStep] = useState(1);
@@ -19,7 +25,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
   const [loadErr, setLoadErr] = useState('');
   const [date, setDate] = useState('');
   const [slot, setSlot] = useState('');
-  const [form, setForm] = useState({ name: '', phone: '', email: '', vehicle: '', notes: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', vehicle_type: '', vehicle: '', notes: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [token, setToken] = useState('');
   const [resetKey, setResetKey] = useState(0);
@@ -90,6 +96,7 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
         <dt>Price</dt><dd>{svc ? `From ${inr(svc.price_from)}` : '—'}</dd>
         <dt>Duration</dt><dd>{svc ? `${svc.duration_min} min` : '—'}</dd>
         {product && <><dt>Product</dt><dd>{product.name}</dd></>}
+        {form.vehicle_type && <><dt>Vehicle</dt><dd>{VEHICLE_TYPES[form.vehicle_type as VehicleType]}</dd></>}
         <dt>Date</dt><dd>{date ? fmtDate(date) : '—'}</dd>
         <dt>Time</dt><dd>{slot ? fmtTime(slot) : '—'}</dd>
       </dl>
@@ -189,7 +196,25 @@ export default function BookingForm({ services, products, vehicles, whatsapp }: 
               <div class="field"><label for="b-name">Full name *</label><input {...field('name')} autoComplete="name" required /><Err k="name" /></div>
               <div class="field"><label for="b-phone">Mobile number *</label><input {...field('phone')} inputMode="tel" autoComplete="tel" placeholder="10-digit mobile" required /><Err k="phone" /></div>
               <div class="field"><label for="b-email">Email *</label><input {...field('email')} type="email" autoComplete="email" required /><Err k="email" /></div>
-              <div class="field"><label for="b-vehicle">Vehicle (brand & model) *</label><input {...field('vehicle')} list="vehicle-list" placeholder="e.g. Honda Activa 6G" required /><datalist id="vehicle-list">{vehicles.map((v) => <option value={v} />)}</datalist><Err k="vehicle" /></div>
+              <fieldset class="field full" style="border:0" aria-describedby={errors.vehicle_type ? 'b-vehicle_type-err' : undefined}>
+                <legend style="font-size:.8rem;font-weight:600;color:#3b4048;margin-bottom:6px">Vehicle type *</legend>
+                <div class="vtype">
+                  {(Object.keys(VEHICLE_TYPES) as VehicleType[]).map((t) => (
+                    <label class={form.vehicle_type === t ? 'on' : ''}>
+                      <input type="radio" name="vehicle_type" value={t} checked={form.vehicle_type === t}
+                        onChange={() => { setForm((f) => ({ ...f, vehicle_type: t })); setErrors((er) => { const { vehicle_type: _, ...rest } = er; return rest; }); }} />
+                      {VEHICLE_TYPES[t]}
+                    </label>
+                  ))}
+                </div>
+                <Err k="vehicle_type" />
+              </fieldset>
+              <div class="field full"><label for="b-vehicle">Vehicle brand & model *</label>
+                <input {...field('vehicle')} list="vehicle-list" placeholder={form.vehicle_type ? TYPE_PLACEHOLDER[form.vehicle_type as VehicleType] : 'e.g. Honda Activa 6G'} required />
+                <datalist id="vehicle-list">
+                  {vehicles.filter((v) => !form.vehicle_type || TYPE_SEGMENTS[form.vehicle_type as VehicleType].includes(v.seg ?? '')).map((v) => <option value={v.label} />)}
+                </datalist>
+                <Err k="vehicle" /></div>
               <div class="field full"><label for="b-notes">Notes (optional)</label><textarea {...field('notes')} placeholder="Describe the issue or anything we should know" /><Err k="notes" /></div>
               <Turnstile onToken={setToken} resetKey={resetKey} />
               <div class="full form-nav" style="margin-top:6px">
