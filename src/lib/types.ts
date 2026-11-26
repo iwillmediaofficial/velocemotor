@@ -15,6 +15,7 @@ export interface Product {
   mrp: number;
   images: ProductImage[];
   is_featured: boolean;
+  show_fitting: boolean;
   sort: number;
   fits: string[]; // vehicle ids
 }

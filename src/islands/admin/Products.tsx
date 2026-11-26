@@ -8,7 +8,7 @@ import { productArt } from '../../lib/art';
 
 interface Row {
   id: string; slug: string; name: string; segment_id: string; position: string | null; short_desc: string; description: string;
-  specs: Spec[]; price: number; mrp: number; sku: string | null; images: ProductImage[]; is_active: boolean; is_featured: boolean; sort: number;
+  specs: Spec[]; price: number; mrp: number; sku: string | null; images: ProductImage[]; is_active: boolean; is_featured: boolean; show_fitting: boolean; sort: number;
   product_fitment: { vehicle_id: string }[];
 }
 const POSITIONS = ['', 'Front', 'Rear', 'Rear pair', 'Front & rear'];
@@ -96,7 +96,7 @@ function ProductEditor({ row, segments, vehicles, nextSort, onClose, onSaved }: 
   const [v, setV] = useState({
     name: row?.name ?? '', slug: row?.slug ?? '', segment_id: row?.segment_id ?? segments[0]?.id ?? '', position: row?.position ?? '',
     short_desc: row?.short_desc ?? '', description: row?.description ?? '', price: row ? String(row.price) : '', mrp: row ? String(row.mrp) : '',
-    sku: row?.sku ?? '', is_active: row?.is_active ?? true, is_featured: row?.is_featured ?? false, sort: row?.sort ?? nextSort,
+    sku: row?.sku ?? '', is_active: row?.is_active ?? true, is_featured: row?.is_featured ?? false, show_fitting: row?.show_fitting ?? true, sort: row?.sort ?? nextSort,
   });
   const [specs, setSpecs] = useState<Spec[]>(row?.specs?.length ? row.specs : [{ label: '', value: '' }]);
   const [fits, setFits] = useState<string[]>(row?.product_fitment.map((f) => f.vehicle_id) ?? []);
@@ -142,7 +142,7 @@ function ProductEditor({ row, segments, vehicles, nextSort, onClose, onSaved }: 
     setBusy(true);
     const values = {
       name: v.name.trim(), slug, segment_id: v.segment_id, position: v.position || null, short_desc: v.short_desc.trim(), description: v.description.trim(),
-      price: Number(v.price), mrp: Number(v.mrp), sku: v.sku.trim() || null, is_active: v.is_active, is_featured: v.is_featured, sort: Number(v.sort) || 0,
+      price: Number(v.price), mrp: Number(v.mrp), sku: v.sku.trim() || null, is_active: v.is_active, is_featured: v.is_featured, show_fitting: v.show_fitting, sort: Number(v.sort) || 0,
       specs: specs.filter((s) => s.label.trim() && s.value.trim()).map((s) => ({ label: s.label.trim(), value: s.value.trim() })),
       images: images.map((im) => ({ ...im, alt: im.alt.trim() || v.name.trim() })),
     };
@@ -189,6 +189,7 @@ function ProductEditor({ row, segments, vehicles, nextSort, onClose, onSaved }: 
         <div class="field full" style="flex-direction:row;gap:22px;align-items:center">
           <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" checked={v.is_active} onChange={(e) => set({ is_active: e.currentTarget.checked })} /> Active (shown on website)</label>
           <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" checked={v.is_featured} onChange={(e) => set({ is_featured: e.currentTarget.checked })} /> Featured on home page</label>
+          <label style="display:flex;gap:8px;align-items:center" title="Shows a 'Book Fitting' button on the product page (only while the Suspension Fitting service is bookable online)"><input type="checkbox" checked={v.show_fitting} onChange={(e) => set({ show_fitting: e.currentTarget.checked })} /> Show "Book Fitting" button</label>
           <label style="display:flex;gap:8px;align-items:center">Sort order <input class="input" type="number" style="width:90px" value={v.sort} onInput={(e) => set({ sort: Number(e.currentTarget.value) })} /></label>
         </div>
         <div class="field full"><label for="p-short_desc">Short description (cards & search results)</label><input {...inp('short_desc', { maxLength: 200 })} /></div>

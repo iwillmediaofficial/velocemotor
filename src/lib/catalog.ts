@@ -20,7 +20,7 @@ export function getCatalog(): Promise<Catalog> {
       get<Segment[]>('segments?select=id,name,blurb,sort&order=sort'),
       get<Vehicle[]>('vehicles?select=id,brand,model,segment_id,sort&order=sort,brand,model'),
       get<(Omit<Product, 'fits'> & { product_fitment: { vehicle_id: string }[] })[]>(
-        'products?select=id,slug,name,segment_id,position,short_desc,description,specs,price,mrp,images,is_featured,sort,product_fitment(vehicle_id)&is_active=eq.true&order=sort,name',
+        'products?select=id,slug,name,segment_id,position,short_desc,description,specs,price,mrp,images,is_featured,show_fitting,sort,product_fitment(vehicle_id)&is_active=eq.true&order=sort,name',
       ),
       get<Service[]>('services?select=id,name,description,price_from,duration_min,is_bookable,sort&is_active=eq.true&order=sort'),
       get<Settings[]>('settings?select=phone,whatsapp,email,address,hours&id=eq.1'),

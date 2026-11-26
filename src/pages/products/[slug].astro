@@ -12,10 +12,12 @@ export async function getStaticPaths() {
   return products.map((p) => ({ params: { slug: p.slug }, props: { id: p.id } }));
 }
 
-const { segments, vehicles, products, settings } = await getCatalog();
+const { segments, vehicles, products, services, settings } = await getCatalog();
 const p = products.find((x) => x.id === Astro.props.id)!;
 const seg = segments.find((s) => s.id === p.segment_id);
 const off = discount(p.price, p.mrp);
+// "Book Fitting" shows only if enabled on the product AND the fitting service is bookable online
+const canBookFitting = p.show_fitting && services.some((s) => s.id === 'fitting' && s.is_bookable);
 const related = products.filter((x) => x.segment_id === p.segment_id && x.id !== p.id).slice(0, 3);
 const fitVehicles = p.fits.map((id) => vehicles.find((v) => v.id === id)).filter(Boolean) as typeof vehicles;
 const canonical = new URL(`/products/${p.slug}`, Astro.site).toString();
@@ -71,7 +73,7 @@ const crumbsLd = {
 
         <div class="pd-actions">
           {settings.whatsapp && <a class="btn btn-wa" target="_blank" rel="noopener" href={waLink(settings.whatsapp, `Hi Veloce Motor, I'm interested in ${p.name} (${inr(p.price)}). Is it available?`)}><Fragment set:html={icons.whatsapp} /> Enquire on WhatsApp</a>}
-          {p.segment_id !== 'care' && <a class="btn btn-primary" href={`/book?service=fitting&product=${p.slug}`}>Book Fitting</a>}
+          {canBookFitting && <a class="btn btn-primary" href={`/book?service=fitting&product=${p.slug}`}>Book Fitting</a>}
           <a class="btn btn-outline" href={`/contact?product=${p.slug}`}>Send Enquiry</a>
         </div>
 
