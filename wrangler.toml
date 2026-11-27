@@ -5,8 +5,13 @@ compatibility_date = "2026-11-01"
 
 [vars]
 SUPABASE_URL = "https://ezynivufmaeftqymvawu.supabase.co"
-SITE_URL = "https://velocemotor.com"
-MAIL_FROM = "Veloce Motor <noreply@velocemotor.com>"
+# TEMPORARY until velocemotor.com is live and verified in Resend:
+# - SITE_URL points emails (logo, admin link) at the pages.dev address
+# - MAIL_FROM uses Resend's test sender, which can only deliver to the Resend account owner
+#   (velocemotor.com@gmail.com): admin alerts work, emails to customers are rejected.
+# Switch back to https://velocemotor.com and "Veloce Motor <noreply@velocemotor.com>" after domain setup.
+SITE_URL = "https://velocemotor.pages.dev"
+MAIL_FROM = "Veloce Motor <onboarding@resend.dev>"
 REPLY_TO = "velocemotor.com@gmail.com"
 ADMIN_EMAIL = "velocemotor.com@gmail.com"
 
