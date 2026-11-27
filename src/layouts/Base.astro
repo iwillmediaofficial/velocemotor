@@ -59,6 +59,7 @@ const nav = [
   <meta property="og:image" content={ogImage} />
   <meta name="twitter:card" content="summary_large_image" />
   <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <slot name="head" />
   <script is:inline>document.documentElement.classList.remove('no-js')</script>
 </head>
 <body>

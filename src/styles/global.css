@@ -281,3 +281,24 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
 .svc.light .svc-prices th,.svc.light .svc-prices td{border-color:#e3e6ea}
 .svc-pick label.off{opacity:.45;cursor:not-allowed}
 .vtype{margin-bottom:18px}
+
+/* ---------- photo hero (home) ---------- */
+/* Desktop: the photo is anchored to the right at its natural 2:1 shape and fades into the
+   matching near-black background on the left, so the car and bike sit beside the headline. */
+.hero-photo{min-height:clamp(560px,44vw,860px);display:flex;align-items:center;background:#0B0E13;padding:100px 0 110px}
+.hero-photo::before{display:none}
+.hero-photo{background:radial-gradient(45% 55% at 78% 30%,rgba(30,111,232,.16),transparent 70%),#0B0E13}
+.hero-photo .hero-bg{position:absolute;bottom:0;right:0;width:min(74vw,1320px);height:auto;max-width:none;aspect-ratio:2/1;object-fit:cover;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 24%),linear-gradient(180deg,transparent 0%,#000 16%);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 24%),linear-gradient(180deg,transparent 0%,#000 16%);mask-composite:intersect}
+.hero-photo .hero-shade{position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(11,14,19,.85) 0%,rgba(11,14,19,.5) 30%,rgba(11,14,19,0) 50%),
+  linear-gradient(0deg,rgba(11,14,19,.9) 0%,rgba(11,14,19,0) 26%)}
+.hero-photo .hero-grid{grid-template-columns:minmax(0,560px);position:relative;z-index:1}
+@media(max-width:900px){
+  /* phones/tablets: photo on top, text below on the dark background */
+  .hero-photo{display:block;min-height:0;padding:0 0 64px}
+  .hero-photo .hero-bg{position:relative;top:auto;bottom:auto;right:auto;width:100%;height:auto;aspect-ratio:4/3;object-position:72% 50%;-webkit-mask-image:none;mask-image:none}
+  .hero-photo .hero-shade{inset:0 0 auto 0;height:75vw;background:linear-gradient(0deg,#0B0E13 0%,rgba(11,14,19,0) 45%)}
+  .hero-photo .hero-grid{margin-top:-40px}
+}
