@@ -4,17 +4,24 @@ import { vehicleTypeLabel } from '../../src/lib/schemas';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-export async function sendEmail(env: Env, to: string, subject: string, html: string, replyTo?: string): Promise<void> {
+// Returns true only when Resend accepted the message.
+export async function sendEmail(env: Env, to: string, subject: string, html: string, replyTo?: string): Promise<boolean> {
   if (!env.RESEND_API_KEY) {
     console.log(`[email skipped: RESEND_API_KEY not set] to=${to} subject="${subject}"`);
-    return;
+    return false;
   }
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: env.MAIL_FROM, to: [to], subject, html, reply_to: replyTo ?? env.REPLY_TO }),
-  });
-  if (!res.ok) console.error('Resend error', res.status, await res.text());
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.MAIL_FROM, to: [to], subject, html, reply_to: replyTo ?? env.REPLY_TO }),
+    });
+    if (!res.ok) console.error('Resend error', res.status, await res.text());
+    return res.ok;
+  } catch (e) {
+    console.error('Resend request failed', e);
+    return false;
+  }
 }
 
 const fmtDate = (iso: string) =>

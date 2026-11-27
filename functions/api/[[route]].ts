@@ -170,13 +170,12 @@ admin.post('/bookings', async (c) => {
 
   c.executionCtx.waitUntil(caches.default.delete(new Request(new URL('/api/slots', c.req.url).toString())));
 
-  let emailed = false;
+  let emailed: boolean | null = null; // null = no email attempted
   if (d.notify && b.email) {
     const [svc] = await select<{ name: string }[]>(c.env, `services?select=name&id=eq.${encodeURIComponent(b.service_id)}`);
     const name = svc?.name ?? b.service_id;
     const mail = b.status === 'confirmed' ? statusEmail(c.env, b, name) : customerBookingEmail(c.env, b, name);
-    c.executionCtx.waitUntil(sendEmail(c.env, b.email, mail.subject, mail.html));
-    emailed = true;
+    emailed = await sendEmail(c.env, b.email, mail.subject, mail.html);
   }
   return c.json({ booking: b, emailed }, 201);
 });
@@ -210,12 +209,11 @@ admin.post('/bookings/:id', async (c) => {
   c.executionCtx.waitUntil(caches.default.delete(new Request(new URL('/api/slots', c.req.url).toString())));
 
   const changed = b.status !== before.status || b.booking_date !== before.booking_date || b.slot !== before.slot;
-  let emailed = false;
+  let emailed: boolean | null = null; // null = no email attempted
   if (d.notify && changed && b.email && ['confirmed', 'rescheduled', 'completed', 'cancelled'].includes(b.status)) {
     const [svc] = await select<{ name: string }[]>(c.env, `services?select=name&id=eq.${encodeURIComponent(b.service_id)}`);
     const { subject, html } = statusEmail(c.env, b, svc?.name ?? b.service_id);
-    c.executionCtx.waitUntil(sendEmail(c.env, b.email, subject, html));
-    emailed = true;
+    emailed = await sendEmail(c.env, b.email, subject, html);
   }
   return c.json({ booking: b, emailed });
 });

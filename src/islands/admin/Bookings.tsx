@@ -176,8 +176,8 @@ function BookingModal({ id, onOpen, onClose, onSaved }: { id: string; onOpen: (i
   const save = async (patch: Record<string, unknown>, label: string) => {
     setBusy(true);
     try {
-      const r = await adminApi<{ emailed: boolean }>(`/bookings/${b.id}`, { method: 'POST', json: { ...patch, admin_note: note, notify } });
-      toast(`${label}.${r.emailed ? ` Email sent to ${b.email}.` : ''}`);
+      const r = await adminApi<{ emailed: boolean | null }>(`/bookings/${b.id}`, { method: 'POST', json: { ...patch, admin_note: note, notify } });
+      toast(`${label}.${r.emailed === true ? ` Email sent to ${b.email}.` : r.emailed === false ? ' The email could not be sent; please call or WhatsApp the customer.' : ''}`);
       onSaved();
     } catch (e) { toast(errMsg(e), 'bad'); } finally { setBusy(false); }
   };

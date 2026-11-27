@@ -78,8 +78,8 @@ export default function NewBooking({ onClose, onCreated }: { onClose: () => void
     if (!parsed.success) { setErrors(fieldErrors(parsed.error)); return; }
     setErrors({}); setBusy(true);
     try {
-      const r = await adminApi<{ booking: { ref: string }; emailed: boolean }>('/bookings', { method: 'POST', json: parsed.data });
-      toast(`Booking ${r.booking.ref} saved${r.emailed ? `, email sent to ${f.email}` : ''}`);
+      const r = await adminApi<{ booking: { ref: string }; emailed: boolean | null }>('/bookings', { method: 'POST', json: parsed.data });
+      toast(`Booking ${r.booking.ref} saved${r.emailed === true ? `, email sent to ${f.email}` : r.emailed === false ? '. The email could not be sent; please call or WhatsApp the customer' : ''}.`);
       onCreated(r.booking.ref);
     } catch (err) {
       const e2 = err as { message: string; fields?: Record<string, string>; error?: string };
