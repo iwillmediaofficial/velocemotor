@@ -294,7 +294,7 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
 .hero-photo .hero-shade{position:absolute;inset:0;background:
   linear-gradient(90deg,rgba(11,14,19,.85) 0%,rgba(11,14,19,.5) 30%,rgba(11,14,19,0) 50%),
   linear-gradient(0deg,rgba(11,14,19,.9) 0%,rgba(11,14,19,0) 26%)}
-.hero-photo .hero-grid{grid-template-columns:minmax(0,560px);position:relative;z-index:1}
+.hero-photo .hero-grid{grid-template-columns:minmax(0,580px);position:relative;z-index:1;width:100%} /* full container width: text lines up with the logo */
 @media(max-width:900px){
   /* phones/tablets: photo on top, text below on the dark background */
   .hero-photo{display:block;min-height:0;padding:0 0 64px}
