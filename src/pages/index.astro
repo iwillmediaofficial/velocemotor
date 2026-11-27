@@ -12,7 +12,7 @@ const featured = products.filter((p) => p.is_featured).slice(0, 4);
 const brands = [...new Set(vehicles.map((v) => v.brand))];
 const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pair('#C9CDD2'), scooter: shock('#3A3F47', '#1E6FE8'), care: bottle() };
 ---
-<Base title="Veloce Motor — Precision Suspension Systems for Every Ride" active="home">
+<Base title="Veloce Motor — Vehicle Service, Wash & Care in Angamaly" description="Servicing, washing, detailing and suspension work for bikes, scooters, electric scooters and cars in Angamaly, Kerala. See the price for your vehicle and book online." active="home">
   <link slot="head" rel="preload" as="image" type="image/webp" fetchpriority="high"
     imagesrcset="/assets/hero/workshop-960.webp 960w, /assets/hero/workshop-1600.webp 1600w, /assets/hero/workshop-2048.webp 2048w"
     imagesizes="(max-width: 900px) 150vw, 74vw" />
@@ -23,14 +23,14 @@ const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pai
     <div class="hero-shade" aria-hidden="true"></div>
     <div class="container hero-grid">
       <div>
-        <span class="eyebrow">Veloce Motor · Made in India</span>
-        <h1 style="margin-top:16px"><span class="chrome-text">Precision Engineering</span><br />for Every Ride.</h1>
-        <p class="lead">High-performance two-wheeler suspension systems built for durability, superior shock absorption and unmatched riding comfort, from smooth highways to the toughest Indian roads.</p>
-        <div class="ctas"><a class="btn btn-primary" href="/products">Find Your Suspension</a><a class="btn btn-ghost" href="/book">Book a Service</a></div>
+        <span class="eyebrow">Vehicle Service · Angamaly, Kerala</span>
+        <h1 style="margin-top:16px"><span class="chrome-text">Complete Care</span><br />for Every Ride.</h1>
+        <p class="lead">Servicing, washing, detailing and suspension work for bikes, scooters, electric scooters and cars, by the team that makes Veloce parts and care products.</p>
+        <div class="ctas"><a class="btn btn-primary" href="/book">Book a Service</a><a class="btn btn-ghost" href="/services">Services & Prices</a></div>
         <div class="trust">
-          <div><b>Built for India</b><span>Made for real road conditions</span></div>
-          <div><b>3 Segments</b><span>Cruiser · Commuter · Scooter & EV</span></div>
-          <div><b>Expert Fitting</b><span>Book online, ride out smoother</span></div>
+          <div><b>All Vehicles</b><span>Bikes · Scooters · EVs · Cars</span></div>
+          <div><b>Upfront Prices</b><span>See your price before you book</span></div>
+          <div><b>Made by Veloce</b><span>Our own parts & care products</span></div>
         </div>
       </div>
     </div>
