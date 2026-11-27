@@ -295,6 +295,12 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
   linear-gradient(90deg,rgba(11,14,19,.85) 0%,rgba(11,14,19,.5) 30%,rgba(11,14,19,0) 50%),
   linear-gradient(0deg,rgba(11,14,19,.9) 0%,rgba(11,14,19,0) 26%)}
 .hero-photo .hero-grid{grid-template-columns:minmax(0,580px);position:relative;z-index:1;width:100%} /* full container width: text lines up with the logo */
+@media(min-width:1500px){
+  /* wide screens: the cropped photo fills the full hero height on the right */
+  .hero-photo .hero-grid{grid-template-columns:minmax(0,520px)}
+  .hero-photo .hero-bg{top:0;bottom:0;height:100%;width:66vw;aspect-ratio:auto;object-fit:cover;object-position:75% 50%;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 30%);mask-image:linear-gradient(90deg,transparent 0%,#000 30%);-webkit-mask-composite:source-over;mask-composite:add}
+}
 @media(max-width:900px){
   /* phones/tablets: photo on top, text below on the dark background */
   .hero-photo{display:block;min-height:0;padding:0 0 64px}

@@ -13,13 +13,20 @@ const brands = [...new Set(vehicles.map((v) => v.brand))];
 const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pair('#C9CDD2'), scooter: shock('#3A3F47', '#1E6FE8'), care: bottle() };
 ---
 <Base title="Veloce Motor — Vehicle Service, Wash & Care in Angamaly" description="Servicing, washing, detailing and suspension work for bikes, scooters, electric scooters and cars in Angamaly, Kerala. See the price for your vehicle and book online." active="home">
-  <link slot="head" rel="preload" as="image" type="image/webp" fetchpriority="high"
+  <link slot="head" rel="preload" as="image" type="image/webp" fetchpriority="high" media="(max-width: 1499px)"
     imagesrcset="/assets/hero/workshop-960.webp 960w, /assets/hero/workshop-1600.webp 1600w, /assets/hero/workshop-2048.webp 2048w"
     imagesizes="(max-width: 900px) 150vw, 74vw" />
+  <link slot="head" rel="preload" as="image" type="image/webp" fetchpriority="high" media="(min-width: 1500px)"
+    imagesrcset="/assets/hero/workshop-crop-1200.webp 1200w, /assets/hero/workshop-crop-1528.webp 1528w" imagesizes="66vw" />
   <section class="hero hero-photo dark">
-    <img class="hero-bg" src="/assets/hero/workshop-1600.webp"
+    <picture>
+      <!-- wide screens: left-cropped photo that fills the full hero height -->
+      <source media="(min-width: 1500px)" type="image/webp" sizes="66vw"
+        srcset="/assets/hero/workshop-crop-1200.webp 1200w, /assets/hero/workshop-crop-1528.webp 1528w" />
+      <img class="hero-bg" src="/assets/hero/workshop-1600.webp"
       srcset="/assets/hero/workshop-960.webp 960w, /assets/hero/workshop-1600.webp 1600w, /assets/hero/workshop-2048.webp 2048w"
       sizes="(max-width: 900px) 150vw, 74vw" width="2048" height="1024" alt="A car and a motorcycle in the Veloce Motor workshop" fetchpriority="high" decoding="async" />
+    </picture>
     <div class="hero-shade" aria-hidden="true"></div>
     <div class="container hero-grid">
       <div>
