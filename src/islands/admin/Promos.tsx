@@ -29,16 +29,19 @@ export default function Promos({ onChange }: { onChange: () => void }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [links, setLinks] = useState<LinkOption[]>([]);
   const [editing, setEditing] = useState<Row | 'new' | null>(null);
+  const [interval, setIntervalSec] = useState(6);
 
   const load = async () => {
     const [p, prod, svc, set] = await Promise.all([
       sb().from('promos').select('*').order('sort').order('created_at'),
       sb().from('products').select('slug,name').eq('is_active', true).order('name'),
       sb().from('services').select('id,name').eq('is_active', true).eq('is_bookable', true).order('sort'),
-      sb().from('settings').select('whatsapp').eq('id', 1).single(),
+      sb().from('settings').select('whatsapp,promo_interval_sec').eq('id', 1).single(),
     ]);
     setRows(must(p) as Row[]);
-    const wa = (set.data as { whatsapp?: string } | null)?.whatsapp;
+    const st = set.data as { whatsapp?: string; promo_interval_sec?: number } | null;
+    const wa = st?.whatsapp;
+    if (st?.promo_interval_sec) setIntervalSec(st.promo_interval_sec);
     setLinks([
       { label: 'Book a Service page', url: '/book' },
       { label: 'Services & Prices page', url: '/services' },
@@ -66,6 +69,15 @@ export default function Promos({ onChange }: { onChange: () => void }) {
       await load(); onChange();
     } catch (e) { toast(errMsg(e), 'bad'); await load(); }
   };
+  const saveInterval = async (secs: number) => {
+    const prev = interval;
+    setIntervalSec(secs);
+    try {
+      must(await sb().from('settings').update({ promo_interval_sec: secs }).eq('id', 1).select('id'));
+      toast(`Each slide now shows for ${secs} seconds. The home page updates in a few minutes.`);
+      onChange();
+    } catch (e) { setIntervalSec(prev); toast(errMsg(e), 'bad'); }
+  };
   const remove = async (r: Row) => {
     if (!confirm(`Delete "${r.title}" permanently? Its images will be deleted too. To hide it instead, switch "Active" off.`)) return;
     try {
@@ -88,6 +100,12 @@ export default function Promos({ onChange }: { onChange: () => void }) {
           {' '}With no live slides, the section is hidden.
         </p>
         <span style="flex:1" />
+        <label style="display:flex;gap:8px;align-items:center;font-size:.88rem;white-space:nowrap" title="How long each slide stays on screen before the slider moves to the next one">
+          Each slide shows for
+          <select class="input" style="width:auto;padding:.4rem .6rem" value={interval} onChange={(e) => saveInterval(Number(e.currentTarget.value))}>
+            {[3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30].map((n) => <option value={n}>{n} seconds</option>)}
+          </select>
+        </label>
         <button class="btn btn-primary btn-sm" onClick={() => setEditing('new')}>+ Add slide</button>
       </div>
       {!rows.length ? <Empty>No slides yet. Add your first offer or new launch.</Empty> : (

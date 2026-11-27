@@ -1,15 +1,15 @@
 ---
 // Home page "Offers & New Launches" slider. Static HTML + ~1.5 KB of script:
-// native swipe (scroll-snap), arrows, dots, 6 s autoplay (paused on hover/focus/touch, off for reduced motion).
+// native swipe (scroll-snap), arrows, dots, autoplay every `interval` seconds (Admin → Offers & Launches) (paused on hover/focus/touch, off for reduced motion).
 // Each slide carries its own start/end day, so offers appear and expire without a rebuild.
 import PromoSlide, { PROMO_KINDS } from './PromoSlide';
 import type { Promo } from '../lib/types';
 
-interface Props { promos: Promo[] }
-const { promos } = Astro.props;
+interface Props { promos: Promo[]; interval?: number }
+const { promos, interval = 6 } = Astro.props;
 ---
 {promos.length > 0 && (
-  <section class="promos" aria-roledescription="carousel" aria-label="Offers and new launches" data-promos>
+  <section class="promos" aria-roledescription="carousel" aria-label="Offers and new launches" data-promos data-interval={interval}>
     <div class="container">
       <div class="promo-frame">
         <div class="promo-track" tabindex="-1">
@@ -84,7 +84,8 @@ const { promos } = Astro.props;
         root.addEventListener('focusout', hold(false));
         root.addEventListener('touchstart', hold(true), { passive: true });
         new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(root);
-        setInterval(() => { if (!held && onScreen && !document.hidden) go(cur + 1); }, 6000);
+        const secs = Math.min(30, Math.max(3, Number(root.dataset.interval) || 6));
+        setInterval(() => { if (!held && onScreen && !document.hidden) go(cur + 1); }, secs * 1000);
       }
     }
   }

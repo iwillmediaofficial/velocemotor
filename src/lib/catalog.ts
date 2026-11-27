@@ -27,7 +27,7 @@ export function getCatalog(): Promise<Catalog> {
       get<(Omit<Service, 'prices'> & { service_prices: ServicePrice[] })[]>(
         'services?select=id,name,description,is_bookable,sort,service_prices(vehicle_type,price,duration_min)&is_active=eq.true&order=sort',
       ),
-      get<Settings[]>('settings?select=phone,whatsapp,email,address,hours&id=eq.1'),
+      get<Settings[]>('settings?select=phone,whatsapp,email,address,hours,promo_interval_sec&id=eq.1'),
       // expired offers are skipped; future ones are included and hidden in the browser until their start day
       get<Promo[]>(`promos?select=id,kind,title,subtitle,highlight,cta_label,cta_url,image,image_mobile,image_has_text,starts_on,ends_on,sort&is_active=eq.true&or=(ends_on.is.null,ends_on.gte.${today})&order=sort,created_at`),
     ]);
@@ -45,7 +45,7 @@ export function getCatalog(): Promise<Catalog> {
         ...s,
         prices: sortPrices(service_prices.map((p) => ({ ...p, price: Number(p.price) }))),
       })),
-      settings: settings[0] ?? { phone: '', whatsapp: '', email: '', address: '', hours: '' },
+      settings: settings[0] ?? { phone: '', whatsapp: '', email: '', address: '', hours: '', promo_interval_sec: 6 },
       promos,
     };
   })();

@@ -44,7 +44,7 @@ const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pai
     </div>
   </section>
 
-  <PromoSlider promos={promos} />
+  <PromoSlider promos={promos} interval={settings.promo_interval_sec} />
 
   <div class="container finder">
     <form class="finder-card" action="/products" method="get" id="finder">

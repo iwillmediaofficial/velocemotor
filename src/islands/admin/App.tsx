@@ -18,6 +18,7 @@ const TABS = [
 type Tab = (typeof TABS)[number][0];
 
 const isAdmin = (s: Session | null) => s?.user?.app_metadata?.role === 'admin';
+const LOCAL = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 
 export default function AdminApp() {
   return <ToastProvider><Root /></ToastProvider>;
@@ -152,6 +153,12 @@ function Shell({ session }: { session: Session }) {
         <div class="admin-top">
           <h1>{title}</h1>
         </div>
+        {LOCAL && (
+          <div class="alert bad" role="note" style="margin-bottom:16px">
+            <b>Local test copy.</b> Text changes here go to the real database, but photos uploaded here are saved only on this
+            computer and will be missing on the live website. Upload real photos at velocemotor.pages.dev/admin (or your live domain).
+          </div>
+        )}
         <Page onChange={refreshMeta} />
       </div>
     </div>

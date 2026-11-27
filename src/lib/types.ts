@@ -27,6 +27,7 @@ export interface Service {
 }
 export interface Settings {
   phone: string; whatsapp: string; email: string; address: string; hours: string;
+  promo_interval_sec: number; // home slider: seconds per slide
 }
 export interface Catalog {
   segments: Segment[]; vehicles: Vehicle[]; products: Product[]; services: Service[]; settings: Settings; promos: Promo[];
