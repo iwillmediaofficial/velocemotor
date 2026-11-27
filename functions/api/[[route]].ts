@@ -41,8 +41,9 @@ app.onError((err) => dbErrorResponse(err));
 // Clear setup error instead of a generic 500 when the server secret is missing (e.g. empty .dev.vars locally).
 app.use('*', async (c, next) => {
   if (!c.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error('SUPABASE_SERVICE_ROLE_KEY is not set (.dev.vars locally, or a Cloudflare Pages secret)');
-    return c.json({ error: 'NOT_CONFIGURED', message: 'Server setup incomplete: SUPABASE_SERVICE_ROLE_KEY is missing. Add your Supabase secret key to .dev.vars and restart.' }, 503);
+    // Technical detail goes to the log only; visitors get a friendly message.
+    console.error('SUPABASE_SERVICE_ROLE_KEY is not set: add it to .dev.vars (local) or as a Cloudflare Pages secret (production)');
+    return c.json({ error: 'NOT_CONFIGURED', message: 'Online booking is temporarily unavailable. Please call or WhatsApp us to book.' }, 503);
   }
   await next();
 });
