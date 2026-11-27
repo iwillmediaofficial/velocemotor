@@ -6,12 +6,13 @@ import Dashboard from './Dashboard';
 import Bookings from './Bookings';
 import Enquiries from './Enquiries';
 import Products from './Products';
+import Promos from './Promos';
 import Services from './Services';
 import Vehicles from './Vehicles';
 import SettingsPage from './Settings';
 
 const TABS = [
-  ['dashboard', 'Dashboard'], ['bookings', 'Bookings'], ['enquiries', 'Enquiries'], ['products', 'Products'],
+  ['dashboard', 'Dashboard'], ['bookings', 'Bookings'], ['enquiries', 'Enquiries'], ['products', 'Products'], ['promos', 'Offers & Launches'],
   ['services', 'Services'], ['vehicles', 'Vehicles'], ['settings', 'Settings'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
@@ -128,7 +129,7 @@ function Shell({ session }: { session: Session }) {
     }, delay);
   }
 
-  const Page = { dashboard: Dashboard, bookings: Bookings, enquiries: Enquiries, products: Products, services: Services, vehicles: Vehicles, settings: SettingsPage }[tab];
+  const Page = { dashboard: Dashboard, bookings: Bookings, enquiries: Enquiries, products: Products, promos: Promos, services: Services, vehicles: Vehicles, settings: SettingsPage }[tab];
   const title = TABS.find(([k]) => k === tab)![1];
 
   return (

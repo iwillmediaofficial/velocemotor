@@ -1,6 +1,6 @@
-// BUILD-TIME ONLY. Reads the catalogue from Supabase once per build (5 small queries),
+// BUILD-TIME ONLY. Reads the catalogue from Supabase once per build (6 small queries),
 // so visitors never hit the database while browsing.
-import type { Catalog, Product, ProductLite, Segment, Service, ServicePrice, Settings, Vehicle } from './types';
+import type { Catalog, Product, ProductLite, Promo, Segment, Service, ServicePrice, Settings, Vehicle } from './types';
 import { sortPrices } from './pricing';
 
 const URL = import.meta.env.PUBLIC_SUPABASE_URL;
@@ -17,7 +17,8 @@ let cached: Promise<Catalog> | undefined;
 
 export function getCatalog(): Promise<Catalog> {
   cached ??= (async () => {
-    const [segments, vehicles, rawProducts, services, settings] = await Promise.all([
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    const [segments, vehicles, rawProducts, services, settings, promos] = await Promise.all([
       get<Segment[]>('segments?select=id,name,blurb,sort&order=sort'),
       get<Vehicle[]>('vehicles?select=id,brand,model,segment_id,sort&order=sort,brand,model'),
       get<(Omit<Product, 'fits'> & { product_fitment: { vehicle_id: string }[] })[]>(
@@ -27,6 +28,8 @@ export function getCatalog(): Promise<Catalog> {
         'services?select=id,name,description,is_bookable,sort,service_prices(vehicle_type,price,duration_min)&is_active=eq.true&order=sort',
       ),
       get<Settings[]>('settings?select=phone,whatsapp,email,address,hours&id=eq.1'),
+      // expired offers are skipped; future ones are included and hidden in the browser until their start day
+      get<Promo[]>(`promos?select=id,kind,title,subtitle,highlight,cta_label,cta_url,image,image_mobile,image_has_text,starts_on,ends_on,sort&is_active=eq.true&or=(ends_on.is.null,ends_on.gte.${today})&order=sort,created_at`),
     ]);
     const products: Product[] = rawProducts.map(({ product_fitment, ...p }) => ({
       ...p,
@@ -43,6 +46,7 @@ export function getCatalog(): Promise<Catalog> {
         prices: sortPrices(service_prices.map((p) => ({ ...p, price: Number(p.price) }))),
       })),
       settings: settings[0] ?? { phone: '', whatsapp: '', email: '', address: '', hours: '' },
+      promos,
     };
   })();
   return cached;

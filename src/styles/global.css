@@ -308,3 +308,48 @@ footer{background:var(--carbon-950);color:var(--steel-400);padding:64px 0 28px;f
   .hero-photo .hero-shade{inset:0 0 auto 0;height:75vw;background:linear-gradient(0deg,#0B0E13 0%,rgba(11,14,19,0) 45%)}
   .hero-photo .hero-grid{margin-top:-40px}
 }
+
+/* ---------- Offers & New Launches slider (home, below the hero) ---------- */
+.promos{padding:0;margin-top:-48px;position:relative;z-index:5}
+.promos ~ .finder{margin-top:28px}
+.promo-frame{position:relative}
+.promo-track{position:relative;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:var(--r-lg);box-shadow:0 24px 60px -24px rgba(10,11,13,.55);background:var(--carbon-950)}
+.promo-track::-webkit-scrollbar{display:none}
+.promo-item{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+.promo{position:relative;display:block;aspect-ratio:8/3;overflow:hidden;background:var(--carbon-950);color:#fff}
+.promo picture,.promo img{position:absolute;inset:0;width:100%;height:100%}
+.promo img{object-fit:cover;object-position:right center}
+.promo:not(.promo-banner)::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(10,11,13,.94) 0%,rgba(10,11,13,.78) 36%,rgba(10,11,13,0) 68%)}
+.promo-plain{background:radial-gradient(55% 90% at 82% 50%,rgba(30,111,232,.38),transparent 70%),radial-gradient(30% 60% at 100% 100%,rgba(74,141,245,.18),transparent 70%),var(--carbon-950)}
+.promo-plain::after{content:"";position:absolute;height:2px;width:60%;top:30%;right:-12%;background:linear-gradient(90deg,transparent,rgba(74,141,245,.9),transparent);transform:rotate(-20deg);opacity:.6}
+.promo-plain::before{display:none}
+.promo-body{position:relative;z-index:2;height:100%;max-width:min(600px,60%);padding:clamp(24px,4vw,52px) clamp(24px,4vw,52px) clamp(24px,4vw,52px) clamp(72px,7vw,92px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px}
+.promo-body h3{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;line-height:1.08}
+.promo-body p{color:var(--chrome-200);font-size:clamp(.9rem,1.3vw,1.05rem);max-width:460px}
+.promo-hl{font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,2.6vw,2.1rem);line-height:1;background:var(--chrome-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.promo-body .btn{margin-top:8px}
+.promo-badge{font-family:var(--font-display);font-weight:700;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;padding:.32rem .7rem;border-radius:999px;background:var(--volt-500);color:#fff}
+.promo-badge.k-offer{background:var(--success)}
+.promo-badge.k-limited{background:var(--warn);color:#1a1d22}
+.promo-nav{position:absolute;top:50%;translate:0 -50%;z-index:3;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(10,11,13,.55);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;backdrop-filter:blur(6px);opacity:.75;transition:opacity .2s,background .2s}
+.promo-nav:hover,.promo-nav:focus-visible{opacity:1;background:rgba(10,11,13,.8)}
+.promo-nav.prev{left:14px}.promo-nav.next{right:14px}
+.promo-dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.promo-dots button{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:#c3c7cd;cursor:pointer;transition:width .25s,background .25s}
+.promo-dots button[aria-current="true"]{width:26px;background:var(--volt-500)}
+@media (max-width:700px){
+  .promos{margin-top:-32px}
+  /* phones: photo on top, text below (stacked), so neither hides the other */
+  .promo-item{display:flex}
+  .promo{aspect-ratio:auto;flex:1;display:flex;flex-direction:column}
+  .promo:not(.promo-banner) picture{position:relative;display:block;height:auto;aspect-ratio:16/10;flex:none}
+  .promo:not(.promo-banner) picture::after{content:"";position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(0deg,var(--carbon-950),transparent)}
+  .promo:not(.promo-banner)::before{display:none}
+  .promo-body{max-width:none;height:auto;flex:1;justify-content:flex-start;padding:18px 22px 24px}
+  .promo-plain{min-height:300px}
+  .promo-plain .promo-body{justify-content:center}
+  .promo-banner{aspect-ratio:4/5}
+  .promo-banner.wide-only{aspect-ratio:8/3}
+  .promo-nav{display:none}
+}
+@media (prefers-reduced-motion:reduce){.promo-track{scroll-behavior:auto}}

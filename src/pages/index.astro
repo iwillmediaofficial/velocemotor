@@ -2,12 +2,13 @@
 import Base from '../layouts/Base.astro';
 import ProductCard from '../components/ProductCard.astro';
 import ServiceCard from '../components/ServiceCard.astro';
+import PromoSlider from '../components/PromoSlider.astro';
 import { getCatalog } from '../lib/catalog';
 import { bottle, pair, shock } from '../lib/art';
 import { icons } from '../lib/icons';
 import { waLink } from '../lib/format';
 
-const { segments, vehicles, products, services, settings } = await getCatalog();
+const { segments, vehicles, products, services, settings, promos } = await getCatalog();
 const featured = products.filter((p) => p.is_featured).slice(0, 4);
 const brands = [...new Set(vehicles.map((v) => v.brand))];
 const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pair('#C9CDD2'), scooter: shock('#3A3F47', '#1E6FE8'), care: bottle() };
@@ -42,6 +43,8 @@ const segArt: Record<string, string> = { cruiser: pair('#1E6FE8'), commuter: pai
       </div>
     </div>
   </section>
+
+  <PromoSlider promos={promos} />
 
   <div class="container finder">
     <form class="finder-card" action="/products" method="get" id="finder">

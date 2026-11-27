@@ -1,0 +1,91 @@
+---
+// Home page "Offers & New Launches" slider. Static HTML + ~1.5 KB of script:
+// native swipe (scroll-snap), arrows, dots, 6 s autoplay (paused on hover/focus/touch, off for reduced motion).
+// Each slide carries its own start/end day, so offers appear and expire without a rebuild.
+import PromoSlide, { PROMO_KINDS } from './PromoSlide';
+import type { Promo } from '../lib/types';
+
+interface Props { promos: Promo[] }
+const { promos } = Astro.props;
+---
+{promos.length > 0 && (
+  <section class="promos" aria-roledescription="carousel" aria-label="Offers and new launches" data-promos>
+    <div class="container">
+      <div class="promo-frame">
+        <div class="promo-track" tabindex="-1">
+          {promos.map((p, i) => (
+            <div class="promo-item" role="group" aria-roledescription="slide" aria-label={`${PROMO_KINDS[p.kind]}: ${p.title}`}
+              data-start={p.starts_on ?? ''} data-end={p.ends_on ?? ''}>
+              <PromoSlide p={p} eager={i === 0} />
+            </div>
+          ))}
+        </div>
+        {promos.length > 1 && (
+          <>
+            <button type="button" class="promo-nav prev" aria-label="Previous offer">‹</button>
+            <button type="button" class="promo-nav next" aria-label="Next offer">›</button>
+            <div class="promo-dots" />
+          </>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-promos]');
+  if (root) {
+    // Hide slides outside their date range (IST calendar days), then drop the section if nothing is left.
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    root.querySelectorAll<HTMLElement>('.promo-item').forEach((el) => {
+      const { start, end } = el.dataset;
+      if ((start && today < start) || (end && today > end)) el.remove();
+    });
+    const track = root.querySelector<HTMLElement>('.promo-track')!;
+    const slides = [...track.children] as HTMLElement[];
+    if (!slides.length) root.remove();
+    else if (slides.length === 1) root.querySelectorAll('.promo-nav,.promo-dots').forEach((el) => el.remove());
+    else {
+      const dotsBox = root.querySelector<HTMLElement>('.promo-dots')!;
+      const dots = slides.map((_, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', `Show offer ${i + 1} of ${slides.length}`);
+        b.addEventListener('click', () => go(i));
+        dotsBox.append(b);
+        return b;
+      });
+      let cur = 0;
+      const go = (i: number) => {
+        cur = (i + slides.length) % slides.length;
+        track.scrollTo({ left: slides[cur].offsetLeft, behavior: 'smooth' });
+      };
+      const mark = (i: number) => {
+        cur = i;
+        dots.forEach((d, j) => d.setAttribute('aria-current', String(j === i)));
+        slides.forEach((s, j) => s.toggleAttribute('inert', j !== i)); // keep off-screen links out of the tab order
+      };
+      mark(0);
+      const io = new IntersectionObserver(
+        (es) => es.forEach((e) => { if (e.isIntersecting) mark(slides.indexOf(e.target as HTMLElement)); }),
+        { root: track, threshold: 0.6 },
+      );
+      slides.forEach((s) => io.observe(s));
+      root.querySelector('.prev')!.addEventListener('click', () => go(cur - 1));
+      root.querySelector('.next')!.addEventListener('click', () => go(cur + 1));
+
+      // Autoplay: only when visible on screen, never for reduced-motion users, paused while the visitor interacts.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        let held = false, onScreen = false;
+        const hold = (v: boolean) => () => { held = v; };
+        root.addEventListener('mouseenter', hold(true));
+        root.addEventListener('mouseleave', hold(false));
+        root.addEventListener('focusin', hold(true));
+        root.addEventListener('focusout', hold(false));
+        root.addEventListener('touchstart', hold(true), { passive: true });
+        new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(root);
+        setInterval(() => { if (!held && onScreen && !document.hidden) go(cur + 1); }, 6000);
+      }
+    }
+  }
+</script>
